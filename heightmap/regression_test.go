@@ -6,8 +6,9 @@ import (
 	"github.com/shindakun/golibtcod/rng"
 )
 
-// initSz is min(W,H)-1, so the corner seeding indexed Values[-1] on a 1x1
-// map. Displacement needs at least a 2x2 grid to have a midpoint.
+// initSz is min(W,H)-1, so the corner seeding indexed Values[-1] when
+// min(W,H)==1. min(W,H)==2 is safe (all four seed indices collapse to 0) and
+// must still run, matching C.
 func TestMidPointDisplacementDegenerateSizes(t *testing.T) {
 	for _, d := range [][2]int{{1, 1}, {1, 5}, {5, 1}, {2, 2}, {3, 3}, {33, 33}} {
 		func() {
@@ -43,5 +44,33 @@ func TestAddVoronoiShortCoefficientSlice(t *testing.T) {
 			}()
 			New(8, 8).AddVoronoi(c.nbPoints, c.nbCoef, c.coef, rng.New(rng.MT, 1))
 		}()
+	}
+}
+
+// The guard must reject only min(W,H)==1. A 2x2 map seeds one corner in C,
+// so rejecting it too would silently produce an all-zero heightmap.
+func TestMidPointDisplacementGuardBoundary(t *testing.T) {
+	nonzero := func(hm *HeightMap) int {
+		n := 0
+		for _, v := range hm.Values {
+			if v != 0 {
+				n++
+			}
+		}
+		return n
+	}
+	for _, d := range [][2]int{{1, 1}, {1, 9}, {9, 1}} {
+		hm := New(d[0], d[1])
+		hm.MidPointDisplacement(rng.New(rng.MT, 1), 0.5)
+		if got := nonzero(hm); got != 0 {
+			t.Errorf("%dx%d: expected no writes, got %d", d[0], d[1], got)
+		}
+	}
+	for _, d := range [][2]int{{2, 2}, {2, 9}, {9, 2}} {
+		hm := New(d[0], d[1])
+		hm.MidPointDisplacement(rng.New(rng.MT, 1), 0.5)
+		if got := nonzero(hm); got == 0 {
+			t.Errorf("%dx%d: guard is too broad, C seeds a corner here", d[0], d[1])
+		}
 	}
 }

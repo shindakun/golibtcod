@@ -56,9 +56,21 @@ type Tileset struct {
 	VirtualColumns int
 }
 
-// New is TCOD_tileset_new. Tile dimensions must be positive.
+// maxTileDimension bounds a single glyph cell. Real fonts are tens of
+// pixels per side, so this rejects only nonsense. Without it, dimensions
+// read straight out of a BDF header reach the allocator: tileWidth *
+// tileHeight overflows int (2^28 squared makes capacity * tileLength wrap
+// to exactly 0, so reserve reports success having allocated nothing), and a
+// merely large value asks for gigabytes per glyph.
+const maxTileDimension = 1 << 12 // 4096 px per side
+
+// New is TCOD_tileset_new. Tile dimensions must be positive and no larger
+// than maxTileDimension; anything else returns nil.
 func New(tileWidth, tileHeight int) *Tileset {
 	if tileWidth <= 0 || tileHeight <= 0 {
+		return nil
+	}
+	if tileWidth > maxTileDimension || tileHeight > maxTileDimension {
 		return nil
 	}
 	return &Tileset{
@@ -113,10 +125,18 @@ func (t *Tileset) reserve(want int) error {
 	return nil
 }
 
+// maxCodepoint bounds the character map. Unicode's last codepoint is
+// U+10FFFF, so nothing legitimate sits above this; the ceiling stops the
+// doubling loop below from overflowing on a hostile or nonsense value.
+const maxCodepoint = 0x10FFFF
+
 // charmapReserve is TCOD_tileset_charmap_reserve.
 func (t *Tileset) charmapReserve(want int) error {
 	if want < 0 {
 		return fmt.Errorf("tileset: negative codepoint count %d", want)
+	}
+	if want > maxCodepoint+1 {
+		return fmt.Errorf("tileset: codepoint count %d exceeds the Unicode maximum", want)
 	}
 	if want <= len(t.characterMap) {
 		return nil
@@ -125,8 +145,14 @@ func (t *Tileset) charmapReserve(want int) error {
 	if newLength == 0 {
 		newLength = defaultCharmapLength
 	}
+	// Guard the doubling: newLength*2 overflows to negative past MaxInt/2,
+	// which would make this loop spin forever rather than terminate.
 	for want > newLength {
 		newLength *= 2
+		if newLength > maxCodepoint+1 || newLength < 0 {
+			newLength = maxCodepoint + 1
+			break
+		}
 	}
 	grown := make([]int, newLength)
 	copy(grown, t.characterMap)
@@ -201,7 +227,14 @@ func (t *Tileset) SetTile(codepoint int, pixels []color.RGBA) error {
 }
 
 // Tile is TCOD_tileset_get_tile: the glyph bitmap for a codepoint, or nil
-// if the codepoint has no tile. The result aliases the tileset's buffer.
+// if the codepoint has no tile.
+//
+// The result aliases the tileset's internal buffer, matching C, which
+// returns a const pointer into the same storage. Treat it as read-only, do
+// not re-slice it past its length (the underlying array continues into the
+// next glyph), and do not retain it: a later SetTile can reallocate the
+// buffer, after which writes through an older slice are silently lost. Use
+// Coverage, which copies, when you need a value you can keep or modify.
 //
 // DIVERGENCE (deliberate): C's TCOD_tileset_get_tile_id returns 0 for an
 // unmapped codepoint, and TCOD_tileset_get_tile only rejects a negative id,

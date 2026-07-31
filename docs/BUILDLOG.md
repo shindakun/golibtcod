@@ -558,8 +558,10 @@ the one that reached callers through the validated path.
 ### 6. Panics on degenerate input
 
 - `MidPointDisplacement` on a 1x1 map indexed `Values[-1]` (`initSz` is
-  `min(W,H)-1`). Now requires a 2x2 grid, which is the smallest size with a
-  midpoint at all.
+  `min(W,H)-1`). Now rejects only `min(W,H) == 1`. (Session 7 narrowed this:
+  the original guard also rejected `min(W,H) == 2`, where all four seed
+  indices collapse to 0 and C runs safely, so 2x2 maps were silently coming
+  back all-zero.)
 - `AddVoronoi` clamped `nbCoef` against `nbPoints` but not `len(coef)`, so a
   short coefficient slice ran off the end. Now clamped against both.
 - `fov.Map` accessors dereferenced a nil receiver, and `NewMap` signals
@@ -754,9 +756,50 @@ now shows the `go get` line and the import block, which it never did.
 Prose keeps saying "golibtcod": that is the project's name, and only the
 import path needed to be a URL.
 
+### Session 7 addendum: hardening found by re-review
+
+A follow-up review of the new tileset code found three defects in it, all
+now fixed with regression tests:
+
+- **`charmapReserve` looped forever.** The doubling `newLength *= 2`
+  overflows to negative past `MaxInt/2`, so `want > newLength` never became
+  false. Reachable straight through `SetTile(maxInt-1, ...)`. Bounded at
+  `U+10FFFF` now; the full legitimate Unicode range still works.
+- **`reserve` reported success having allocated nothing.** `capacity *
+  tileLength` overflows `int`: at a 2^28 square cell it wraps to exactly 0,
+  so `make` succeeded with zero storage while `tilesCount` was set to 1.
+- **A 124-byte BDF file panicked out of `ReadBDF`.** `FONTBOUNDINGBOX` fed
+  `New` unbounded, so a hostile header reached the allocator directly
+  (`makeslice: len out of range`). Since `ReadBDF` returns an `error`, an
+  escaping panic broke its contract and a caller loading a user-supplied
+  font could not defend without `recover`.
+
+All three are closed by bounding the cell size in `New` (`maxTileDimension`,
+4096 px per side) and the charmap at `U+10FFFF`. Real fonts are far below
+both; `4x6.bdf` still loads all 919 glyphs byte-identically to C. This is
+the same lesson as the rexpaint fix in session 5: dimensions read from
+untrusted input must be bounded before they reach an allocator.
+
+### Divergences in the BDF parser, documented not fixed
+
+C's `read_next_int` is `strtol(..., 0)`, which accepts hex and octal; the Go
+port uses `strconv.Atoi`, which is base-10 only and yields 0 on error. So
+`ENCODING 0x41` maps to codepoint 0 in Go and 65 in C, and `ENCODING 010` is
+10 rather than 8. Go is also more permissive about whitespace: tab-separated
+or indented keywords and a leading space on a BITMAP row are all accepted
+where C rejects them. None of this affects real fonts, which use plain
+decimal and conventional layout, and the 919-glyph fixture comparison
+confirms it.
+
+`Tile()` returns a live slice into the internal buffer, matching C's const
+pointer. Two traps a Go caller would not expect: the slice carries full
+capacity, so re-slicing past its length reaches a neighbouring glyph, and it
+goes stale once a later `SetTile` grows the buffer. Documented on the method,
+which points callers at `Coverage()` when they need a value they can keep.
+
 ### Results after session 6
 
-- 18 packages. `go build`, `go vet`, `gofmt`, `go test ./...` all clean.
+- 19 packages. `go build`, `go vet`, `gofmt`, `go test ./...` all clean.
 - `golangci-lint run`: 0 issues. `markdownlint-cli2`: 0 errors.
 - Still zero third-party dependencies in the library itself; the new tooling
   (golangci-lint, pre-commit, markdownlint) is developer-side only and does

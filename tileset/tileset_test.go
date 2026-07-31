@@ -1,8 +1,10 @@
 package tileset
 
 import (
+	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/shindakun/golibtcod/color"
 )
@@ -228,5 +230,95 @@ func TestReadBDFErrors(t *testing.T) {
 func TestLoadBDFMissingFile(t *testing.T) {
 	if _, err := LoadBDF("does-not-exist.bdf"); err == nil {
 		t.Error("expected an error for a missing file")
+	}
+}
+
+// charmapReserve doubles its length until it covers the requested codepoint.
+// Past MaxInt/2 that doubling overflowed to negative and the loop spun
+// forever, reachable straight through SetTile.
+func TestCharmapReserveTerminates(t *testing.T) {
+	const maxInt = int(^uint(0) >> 1)
+	done := make(chan error, 1)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				done <- fmt.Errorf("panic: %v", r)
+			}
+		}()
+		done <- New(2, 2).SetTile(maxInt-1, make([]color.RGBA, 4))
+	}()
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Error("expected an error for an absurd codepoint")
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("SetTile did not return: charmapReserve is looping")
+	}
+}
+
+// The whole Unicode range must still be assignable.
+func TestFullUnicodeRangeAssignable(t *testing.T) {
+	ts := New(2, 2)
+	px := make([]color.RGBA, 4)
+	for _, cp := range []int{0x41, 0x2588, 0xFFFF, 0x10000, 0x10FFFF} {
+		if err := ts.SetTile(cp, px); err != nil {
+			t.Errorf("SetTile(%#x): %v", cp, err)
+		} else if !ts.HasTile(cp) {
+			t.Errorf("codepoint %#x lost", cp)
+		}
+	}
+	if err := ts.SetTile(0x110000, px); err == nil {
+		t.Error("expected rejection past U+10FFFF")
+	}
+}
+
+// FONTBOUNDINGBOX goes straight to New, so an unbounded cell size let a
+// tiny hostile file reach the allocator: 2^28 squared overflows int and
+// made reserve report success with zero storage, and merely large values
+// asked for gigabytes per glyph. A panic must never escape ReadBDF, which
+// returns an error.
+func TestHostileFontBoundingBoxRejected(t *testing.T) {
+	for _, bbox := range []string{
+		"268435456 268435456", // overflows tileLength * capacity to 0
+		"65536 65536",         // ~16 GB per glyph
+		"1000000000 1000000000",
+		"1 1000000000",
+	} {
+		src := "STARTFONT 2.1\nFONTBOUNDINGBOX " + bbox +
+			" 0 0\nCHARS 1\nSTARTCHAR a\nENCODING 65\nBBX 1 1 0 0\nBITMAP\n80\nENDCHAR\nENDFONT\n"
+		done := make(chan error, 1)
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					done <- fmt.Errorf("panic: %v", r)
+				}
+			}()
+			_, err := ReadBDF([]byte(src))
+			done <- err
+		}()
+		select {
+		case err := <-done:
+			if err == nil {
+				t.Errorf("FONTBOUNDINGBOX %q was accepted", bbox)
+			} else if strings.HasPrefix(err.Error(), "panic:") {
+				t.Errorf("FONTBOUNDINGBOX %q: %v", bbox, err)
+			}
+		case <-time.After(10 * time.Second):
+			t.Errorf("FONTBOUNDINGBOX %q: did not return", bbox)
+		}
+	}
+}
+
+// reserve must never report success while allocating nothing.
+func TestNewRejectsOverflowingDimensions(t *testing.T) {
+	for _, d := range [][2]int{{1 << 28, 1 << 28}, {1 << 30, 1 << 30}, {maxTileDimension + 1, 1}} {
+		if ts := New(d[0], d[1]); ts != nil {
+			t.Errorf("New(%d,%d) should be nil", d[0], d[1])
+		}
+	}
+	// The largest allowed cell still works.
+	if ts := New(maxTileDimension, 1); ts == nil {
+		t.Errorf("New(%d,1) should be allowed", maxTileDimension)
 	}
 }

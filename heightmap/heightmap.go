@@ -503,10 +503,11 @@ func (hm *HeightMap) MidPointDisplacement(r *rng.Random, roughness float32) {
 	step := 1
 	offset := float32(1.0)
 	initSz := minI(hm.W, hm.H) - 1
-	// The corner seeding below indexes Values[sz-1], which is Values[-1] on a
-	// 1x1 map (C writes before the array there). Displacement needs at least a
-	// 2x2 grid to have a midpoint at all.
-	if initSz < 2 {
+	// The corner seeding below indexes Values[sz-1], which is Values[-1] when
+	// initSz is 0, i.e. min(W,H) == 1. C writes before the array there.
+	// initSz == 1 (min(W,H) == 2) is safe: all four seed indices collapse to
+	// 0, which C also does, so it must not be rejected.
+	if initSz < 1 {
 		return
 	}
 	sz := initSz
