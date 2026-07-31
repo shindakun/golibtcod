@@ -88,6 +88,14 @@ var glyphs = map[rune][8]string{
 	')':  {" X      ", "  X     ", "   X    ", "   X    ", "   X    ", "  X     ", " X      ", ""},
 	'=':  {"", "", "XXXXX   ", "", "XXXXX   ", "", "", ""},
 	'_':  {"", "", "", "", "", "", "", "XXXXX   "},
+	'$':  {"  X     ", " XXXX   ", "X X     ", " XXX    ", "  X X   ", "XXXX    ", "  X     ", ""},
+	'&':  {" XX     ", "X  X    ", "X X     ", " X      ", "X X X   ", "X  X    ", " XX X   ", ""},
+	'\\': {"X       ", "X       ", " X      ", "  X     ", "   X    ", "    X   ", "     X  ", ""},
+	'^':  {"  X     ", " X X    ", "X   X   ", "", "", "", "", ""},
+	'`':  {" X      ", "  X     ", "", "", "", "", "", ""},
+	'{':  {"   XX   ", "  X     ", "  X     ", " X      ", "  X     ", "  X     ", "   XX   ", ""},
+	'|':  {"  X     ", "  X     ", "  X     ", "  X     ", "  X     ", "  X     ", "  X     ", "  X     "},
+	'}':  {" XX     ", "   X    ", "   X    ", "    X   ", "   X    ", "   X    ", " XX     ", ""},
 	// lowercase
 	'a': {"", "", " XXX    ", "    X   ", " XXXX   ", "X   X   ", " XXXX   ", ""},
 	'b': {"X       ", "X       ", "XXXX    ", "X   X   ", "X   X   ", "X   X   ", "XXXX    ", ""},
@@ -124,6 +132,9 @@ var glyphs = map[rune][8]string{
 	'┘': {"   XX   ", "   XX   ", "   XX   ", "XXXXX   ", "XXXXX   ", "", "", ""},
 	'├': {"   XX   ", "   XX   ", "   XX   ", "   XXXXX", "   XXXXX", "   XX   ", "   XX   ", "   XX   "},
 	'┤': {"   XX   ", "   XX   ", "   XX   ", "XXXXX   ", "XXXXX   ", "   XX   ", "   XX   ", "   XX   "},
+	'┬': {"", "", "", "XXXXXXXX", "XXXXXXXX", "   XX   ", "   XX   ", "   XX   "},
+	'┴': {"   XX   ", "   XX   ", "   XX   ", "XXXXXXXX", "XXXXXXXX", "", "", ""},
+	'┼': {"   XX   ", "   XX   ", "   XX   ", "XXXXXXXX", "XXXXXXXX", "   XX   ", "   XX   ", "   XX   "},
 	'█': {"XXXXXXXX", "XXXXXXXX", "XXXXXXXX", "XXXXXXXX", "XXXXXXXX", "XXXXXXXX", "XXXXXXXX", "XXXXXXXX"},
 	'▓': {"XX XX XX", "X XX XX ", "XX XX XX", "X XX XX ", "XX XX XX", "X XX XX ", "XX XX XX", "X XX XX "},
 	'░': {"X   X   ", "        ", "  X   X ", "        ", "X   X   ", "        ", "  X   X ", "        "},
@@ -132,7 +143,7 @@ var glyphs = map[rune][8]string{
 	'†': {"   X    ", "   X    ", " XXXXX  ", "   X    ", "   X    ", "   X    ", "   X    ", "   X    "},
 	'☼': {"   X    ", " X X X  ", "  XXX   ", "XXX XXX ", "  XXX   ", " X X X  ", "   X    ", ""},
 	'∙': {"", "", "", "   XX   ", "   XX   ", "", "", ""},
-	'~': {"", "", " XX   X ", "X  XXX  ", "", "", "", ""},
+	'~': {"", "", "", " XX  X  ", "X  XX   ", "", "", ""},
 }
 
 // Options for the lo-fi post pass: a software approximation of film grain

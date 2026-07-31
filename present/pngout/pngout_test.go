@@ -90,3 +90,28 @@ func TestRenderScaleNormalized(t *testing.T) {
 		t.Errorf("expected a non-empty PNG, err=%v", err)
 	}
 }
+
+// The font must cover every printable ASCII character. It previously lacked
+// $ & \ ^ ` { | } and they fell through to the missing-glyph marker, which
+// is indistinguishable from a deliberate box in rendered output.
+func TestFullPrintableASCIICoverage(t *testing.T) {
+	var missing []rune
+	for r := rune(0x20); r < 0x7f; r++ {
+		if _, ok := glyphs[r]; !ok {
+			missing = append(missing, r)
+		}
+	}
+	if len(missing) > 0 {
+		t.Errorf("font is missing %d printable ASCII glyphs: %q", len(missing), string(missing))
+	}
+}
+
+// Every box-drawing glyph console.Frame/HLine/VLine draws must exist, or
+// frames render as marker boxes.
+func TestBoxDrawingGlyphsPresent(t *testing.T) {
+	for _, r := range "─│┌┐└┘├┤┬┴┼" {
+		if _, ok := glyphs[r]; !ok {
+			t.Errorf("missing box-drawing glyph %q (U+%04X)", r, r)
+		}
+	}
+}
