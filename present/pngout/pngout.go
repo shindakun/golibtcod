@@ -13,6 +13,7 @@ import (
 
 	"golibtcod/color"
 	"golibtcod/console"
+	"golibtcod/tileset"
 )
 
 const CellPx = 8 // glyph cell is 8x8 source pixels
@@ -137,10 +138,66 @@ var glyphs = map[rune][8]string{
 // Options for the lo-fi post pass: a software approximation of film grain
 // and corner darkening.
 type Options struct {
-	Scale    int     // integer upscale of the 8x8 cells
+	Scale    int     // integer upscale of the glyph cells
 	Grain    float64 // 0..1 film-grain amplitude
 	Vignette float64 // 0..1 corner darkening
 	Seed     int64
+
+	// Tileset supplies the glyph bitmaps. Nil uses the built-in 8x8 font,
+	// which keeps the zero-configuration path working; a loaded BDF font
+	// (see the tileset package) replaces it and sets the cell size.
+	Tileset *tileset.Tileset
+}
+
+// cellSize reports the glyph cell dimensions for these options.
+func (o Options) cellSize() (w, h int) {
+	if o.Tileset != nil {
+		return o.Tileset.TileWidth, o.Tileset.TileHeight
+	}
+	return CellPx, CellPx
+}
+
+// coverage reports, for one glyph cell, which pixels are foreground. The
+// returned slice is cw*ch long in row-major order.
+func (o Options) coverage(ch int, cw, chh int) []bool {
+	out := make([]bool, cw*chh)
+	if o.Tileset != nil {
+		cov := o.Tileset.Coverage(ch)
+		if cov == nil {
+			// No glyph for this codepoint: draw a hollow box, the same
+			// marker the built-in font uses, so a missing glyph stays
+			// visibly distinct from real content.
+			for y := 0; y < chh; y++ {
+				for x := 0; x < cw; x++ {
+					if x == 0 || y == 0 || x == cw-1 || y == chh-1 {
+						out[y*cw+x] = true
+					}
+				}
+			}
+			return out
+		}
+		for i := range out {
+			if i < len(cov) {
+				out[i] = cov[i] >= 128
+			}
+		}
+		return out
+	}
+
+	g, ok := glyphs[rune(ch)]
+	if !ok {
+		g = glyphs[missingGlyph]
+	}
+	for y := 0; y < chh; y++ {
+		row := ""
+		if y < len(g) {
+			row = g[y]
+		}
+		for x := 0; x < cw; x++ {
+			out[y*cw+x] = x < len(row) && row[x] != ' '
+		}
+	}
+	return out
 }
 
 // Render draws the console and writes a PNG. This is the whole presenter.
@@ -148,28 +205,22 @@ func Render(c *console.Console, path string, o Options) error {
 	if o.Scale < 1 {
 		o.Scale = 1
 	}
-	w, h := c.W*CellPx*o.Scale, c.H*CellPx*o.Scale
+	cw, ch := o.cellSize()
+	w, h := c.W*cw*o.Scale, c.H*ch*o.Scale
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	rng := rand.New(rand.NewSource(o.Seed))
 
 	for cy := 0; cy < c.H; cy++ {
 		for cx := 0; cx < c.W; cx++ {
 			cell := c.Tiles[cy*c.W+cx]
-			g, ok := glyphs[rune(cell.Ch)]
-			if !ok {
-				g = glyphs[missingGlyph]
-			}
-			for py := 0; py < CellPx; py++ {
-				row := ""
-				if py < len(g) {
-					row = g[py]
-				}
-				for px := 0; px < CellPx; px++ {
+			on := o.coverage(cell.Ch, cw, ch)
+			for py := 0; py < ch; py++ {
+				for px := 0; px < cw; px++ {
 					col2 := color.RGB{R: cell.Bg.R, G: cell.Bg.G, B: cell.Bg.B}
-					if px < len(row) && row[px] != ' ' {
+					if on[py*cw+px] {
 						col2 = color.RGB{R: cell.Fg.R, G: cell.Fg.G, B: cell.Fg.B}
 					}
-					fill(img, (cx*CellPx+px)*o.Scale, (cy*CellPx+py)*o.Scale, o.Scale, col2)
+					fill(img, (cx*cw+px)*o.Scale, (cy*ch+py)*o.Scale, o.Scale, col2)
 				}
 			}
 		}

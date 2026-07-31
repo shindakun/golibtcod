@@ -597,6 +597,100 @@ means the port has no open items at all.
 
 ---
 
+## 2026-07-31: session 6
+
+Ported the half of libtcod's tileset module that does not need external
+libraries, and wired it into `present/pngout`. Also added a `.gitignore`
+(the sample renders were untracked build output).
+
+### What was ported, and what was not
+
+The C module is ~1,700 lines across five files, and it splits cleanly on
+the dependency line:
+
+| C file | needs | ported |
+|---|---|---|
+| `tileset.c` | nothing | yes |
+| `tileset_bdf.c` | nothing | yes |
+| `tileset_fallback.c` | nothing | no: a hardcoded font blob, and `pngout` already has one |
+| `tileset_truetype.c` | `stb_truetype.h` | no |
+| `tileset_render.c` | `SDL3/SDL.h` | no |
+
+The split is not arbitrary. A tileset answers "which pixels does codepoint
+N draw?"; a renderer answers "where do those pixels go?". The first needs
+only the standard library, the second is what the presenter interface
+already is. So the two files requiring external libraries are exactly the
+two that were never this library's job, and the register row that used to
+list "tileset" wholesale as replaced-by-design has been corrected to name
+just those two.
+
+### `tileset` package
+
+`Tileset` mirrors `TCOD_Tileset`: fixed-size RGBA tiles plus a
+codepoint-to-tile-id map, with the same doubling growth for both the tile
+buffer (`DEFAULT_TILES_LENGTH` 256) and the charmap. Tile 0 is kept blank
+exactly as C does, since a zero entry in the charmap means "unassigned".
+
+Two pieces of the C struct are deliberately absent. The observer list exists
+to invalidate SDL texture atlases when a tile changes, and there is no such
+cache here; `ref_count` is Go's garbage collector's job.
+
+`bdf.go` is the `tileset_bdf.c` port: FONTBOUNDINGBOX for the cell size,
+then STARTCHAR blocks carrying a per-glyph BBX and hex bitmap rows. The
+fiddly part is the offset math that places a glyph's own bounding box inside
+the font cell, including the y term that flips the origin (BDF measures up
+from the baseline; tiles are top-down). That is ported verbatim.
+
+### Verified against the C build
+
+Compiled `tileset.c` + `tileset_bdf.c` with gcc and dumped glyph coverage
+for a 15-codepoint sweep, the same golden-fixture method already used for
+rng, fov, path and the rest. `tileset_bdf.c` needs
+`TCOD_load_binary_file_` from `sys_c.c`, which drags in SDL, so the harness
+inlines that one function instead; it is a plain file read.
+
+Result on `4x6.bdf`: **byte-identical**, cell size and every glyph bitmap.
+That is the whole parser validated at once, offset math included. Fixture,
+font and generator are committed in `internal/fixtures/tileset/`.
+
+Tested against `Tamzen5x9r.bdf` too, which surfaced the one divergence
+below, but that font is copyright Scott Fial so it is not vendored; `4x6.bdf`
+is public domain and covers the same ground.
+
+### One divergence, deliberate
+
+C's `TCOD_tileset_get_tile_id` returns 0 for an unmapped codepoint, and
+`TCOD_tileset_get_tile` only rejects a *negative* id. So C hands back tile 0
+(the reserved blank) and reports success: an unmapped codepoint is
+indistinguishable from one deliberately assigned a blank glyph. Confirmed
+against the C build, asking Tamzen for U+00B1, U+03B4, U+2588 and U+2591,
+none of which that font defines: C returns an all-zero tile rather than an
+error.
+
+`Tile` returns nil instead, so a caller can tell "no glyph" from "blank
+glyph". That is what lets `pngout` draw its missing-glyph marker. Every
+codepoint a font actually defines behaves identically in both.
+
+### `pngout` takes a Tileset
+
+`Options.Tileset` overrides the built-in font; nil keeps the existing 8x8
+art, so no caller changes. Cell size now comes from the tileset rather than
+the hardcoded `CellPx`, and the missing-glyph fallback (a hollow box, not
+`'#'`, per session 5) applies to tileset glyphs too.
+
+This is the seam the session 5 review was really complaining about: the
+glyph table was hardcoded, which is why the sample's A* route rendered as
+walls. A tileset is the general form of that table.
+
+### Results after session 6
+
+- 17 packages. `go build`, `go vet`, `gofmt`, `go test ./...` all clean.
+- Still zero third-party dependencies.
+- Fixture suite unchanged, plus glyph bitmaps now verified against C.
+- Deferred register has no open items.
+
+---
+
 # Deferred Register
 
 **This is the canonical list.** Deferred items were previously scattered
@@ -636,7 +730,8 @@ stops a future session "finishing the port" by adding them back.
 
 | libtcod | golibtcod | why |
 |---|---|---|
-| SDL renderer, tileset, context, input | the presenter interface (`present/*`) | Keeps the core engine-free and headless-testable: the property that makes batch worldgen, replay, CI rendering and the terminal build possible |
+| SDL renderer, context, input | the presenter interface (`present/*`) | Keeps the core engine-free and headless-testable: the property that makes batch worldgen, replay, CI rendering and the terminal build possible |
+| `tileset_render.c` (SDL), `tileset_truetype.c` (stb_truetype) | the presenter interface | The rendering half of the tileset module. The atlas and BDF loader *are* ported (session 6); only the two files needing external libraries are excluded, and both answer a question the presenters already answer. |
 | global RNG | explicit `*rng.Random` | A process-global generator can't support a seed economy with independent sim and audio streams |
 | global namegen registry | explicit `*namegen.Registry` | Same reason; also lets multiple syllable sets coexist |
 | `TCOD_list`, `TCOD_tree` | Go slices, maps, struct pointers | Hand-rolled C containers with no behaviour to preserve |

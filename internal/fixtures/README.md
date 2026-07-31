@@ -30,11 +30,32 @@ by both the C generator and the Go test.
 | `rng_*` | 1,664 values: raw stream, floats, ranges, gaussian & inverse-gaussian distributions, dice (MT and CMWC, 4 seeds each) |
 | `bres` | 53 cells across 7 lines (all octants, degenerate, negative coords) |
 | `fov` | 7,264 cells: 8 algorithms x 6 scenarios (2 maps, radius/unlimited, lightWalls on/off, corner POV) |
-| `astar` / `dijkstra` | full paths (map-based and cost-function, diagonal and orthogonal) plus the whole distance grid |
+| `astar` | full paths from both constructors (map-based and cost-function), diagonal and orthogonal |
+| `dijkstra` | full path plus the whole distance grid, **map-based constructor only**: `TCOD_dijkstra_new_using_function` is not covered, which is how the queue-overflow bug fixed in session 5 survived |
 | `bsp` | complete pre-order node dumps (x,y,w,h,level,horizontal,position) for 3 seeds |
 | `noise` | 420 values: perlin, simplex, fbm, turbulence in 1-4D, plus wavelet in 1-3D |
 | `heightmap` | 1,388 values: a full hill/dig/fbm/erosion/normalize chain, interpolation samples, and a 33x33 midpoint-displacement map |
 | `namegen` | 208 generated names across 3 rule forms and 2 seeds |
+| `tileset` | every glyph bitmap of a 4x6 BDF font, as alpha coverage (see `tileset/`) |
+
+## Tileset fixtures
+
+`tileset/` is a separate harness with its own generator. `tileset_bdf.c`
+calls `TCOD_load_binary_file_` from `sys_c.c`, which pulls in SDL, so
+`gen_tileset.c.txt` inlines that one function (a plain file read) rather
+than linking it:
+
+    gcc -w -I<libtcod/src/libtcod> -I<libtcod/src> -I<libtcod/src/vendor> \
+        -o gen_tileset gen_tileset.c tileset.c tileset_bdf.c error.c \
+        logging.c lodepng.c
+    ./gen_tileset 4x6.bdf > fixtures_tileset_4x6.txt
+
+lodepng is linked only because `tileset.c` includes it for PNG tileset
+loading, a path this port does not implement.
+
+`4x6.bdf` is from the ucs-fonts collection and is public domain
+("Public domain font.  Share and enjoy."), so it is vendored here. The port
+reproduces its cell size and every glyph bitmap exactly.
 
 ## Tolerance policy
 

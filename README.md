@@ -26,7 +26,8 @@ algorithm structure, C constants, and preserved quirks; see
 | `parser`    | parser_c.c / lex_c.c      | libtcod .cfg format + optional schema validation (clean-room; divergences measured and documented) |
 | `image`     | image_c.c                 | mipmapped images, blit to console, subcell 2x rendering |
 | `rexpaint`  | console_rexpaint.c        | REXPaint `.xp` read/write, layer flattening |
-| `present/pngout` | (new)                | software renderer w/ embedded 8x8 font |
+| `tileset`   | tileset.c / tileset_bdf.c | tile atlas + BDF font loading (SDL/TrueType paths excluded by design) |
+| `present/pngout` | (new)                | software renderer, built-in 8x8 font or any `tileset` |
 | `present/term`   | (new)                | ANSI truecolor terminal renderer |
 
 ## Quick start
@@ -59,7 +60,16 @@ algorithmic drift.
 The C++ compat layer is declined by design (Go already has methods on
 types). Graphical rendering is deliberately out of scope: any engine
 binding would be a third-party dependency, and the presenter interface
-already lets a consumer supply one. The **Deferred Register** at the end of
-`docs/BUILDLOG.md` is the canonical list, with reasons; it also records what
-is *replaced by design* (SDL/tileset/context/input became the presenter
-interface) so nobody "completes" the port by adding it back.
+already lets a consumer supply one.
+
+The `tileset` package is split along the same line. The atlas and the BDF
+font loader are ported, because they answer "which pixels does codepoint N
+draw?" and need nothing outside the standard library. libtcod's
+`tileset_render.c` (SDL) and `tileset_truetype.c` (stb_truetype) are not,
+because they answer "where do those pixels go?", which is the presenter's
+job.
+
+The **Deferred Register** at the end of `docs/BUILDLOG.md` is the canonical
+list, with reasons; it also records what is *replaced by design*
+(SDL renderer, context and input became the presenter interface) so nobody
+"completes" the port by adding it back.

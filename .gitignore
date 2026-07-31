@@ -1,0 +1,20 @@
+# Renders written by cmd/sample and the present/* packages.
+*.png
+*.ans
+
+# Go build and test output
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/coverage.out
+/coverage.html
+
+# Editor and OS noise
+.DS_Store
+*~
+*.swp
+.idea/
+.vscode/
