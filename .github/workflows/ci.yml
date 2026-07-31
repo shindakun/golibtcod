@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: Go (build / vet / test / lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Verify modules are tidy
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod
+
+      - name: gofmt (check)
+        run: |
+          out=$(gofmt -l .)
+          if [ -n "$out" ]; then echo "Unformatted:"; echo "$out"; exit 1; fi
+
+      - name: Build
+        run: go build -o /dev/null ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test (race + coverage)
+        run: go test -race -coverprofile=coverage.out ./...
+
+      - name: golangci-lint
+        # v9 supports golangci-lint v2 (our .golangci.yml uses the v2 schema).
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12
+
+  fidelity:
+    name: Fidelity (golden fixtures vs the C sources)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # The fixture suite replays 11,000+ values captured from a real libtcod
+      # C build. It is the project's core claim, so it gets its own job:
+      # a failure here means the port diverged from C, which is different in
+      # kind from a lint or style failure.
+      - name: Replay C-generated fixtures
+        run: go test -count=1 -v ./internal/fixtures/...
+
+  docs:
+    name: Docs (markdownlint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: markdownlint
+        # Config is .markdownlint-cli2.jsonc, discovered automatically.
+        uses: DavidAnson/markdownlint-cli2-action@v17
+        with:
+          globs: |
+            **/*.md
+            !node_modules

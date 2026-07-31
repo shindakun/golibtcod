@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"golibtcod/color"
-	"golibtcod/console"
+	"github.com/shindakun/golibtcod/color"
+	"github.com/shindakun/golibtcod/console"
 )
 
 func TestNewAndPixels(t *testing.T) {
@@ -134,14 +134,14 @@ func TestKeyColorSkipsBlit(t *testing.T) {
 	img.Clear(color.RGB{R: 255, G: 0, B: 255})
 	img.SetKeyColor(color.RGB{R: 255, G: 0, B: 255})
 	if !img.IsPixelTransparent(0, 0) {
-		t.Fatal("key-coloured pixel should be transparent")
+		t.Fatal("key-colored pixel should be transparent")
 	}
 	c := console.New(4, 4)
 	c.SetDefaultBackground(color.Blue)
 	c.Clear()
 	img.BlitRect(c, 0, 0, 2, 2, console.BkgndSet)
 	if got := c.CharBackground(0, 0); got != color.Blue {
-		t.Fatalf("key colour was blitted anyway: %+v", got)
+		t.Fatalf("key color was blitted anyway: %+v", got)
 	}
 }
 
@@ -159,7 +159,7 @@ func TestBlitRectFillsConsole(t *testing.T) {
 }
 
 // Subcell rendering is the reason this module is worth having: a solid
-// colour must produce a space, and a two-colour split must pick a block
+// color must produce a space, and a two-color split must pick a block
 // glyph with the right fg/bg pair.
 func TestSubcellQuadrants(t *testing.T) {
 	solid := generateQuadrantGraphic([4]color.RGB{color.Red, color.Red, color.Red, color.Red})
@@ -167,7 +167,7 @@ func TestSubcellQuadrants(t *testing.T) {
 		t.Errorf("uniform quadrants should be a space, got %U", rune(solid.Ch))
 	}
 	if solid.Bg.R != 255 {
-		t.Errorf("uniform quadrant colour lost: %+v", solid.Bg)
+		t.Errorf("uniform quadrant color lost: %+v", solid.Bg)
 	}
 
 	// top half black, bottom half white -> upper-half block with swapped pair
@@ -178,7 +178,7 @@ func TestSubcellQuadrants(t *testing.T) {
 		t.Errorf("expected upper half block U+2580, got %U", rune(half.Ch))
 	}
 	if half.Fg == half.Bg {
-		t.Error("two-colour cell must have distinct fg/bg")
+		t.Error("two-color cell must have distinct fg/bg")
 	}
 }
 

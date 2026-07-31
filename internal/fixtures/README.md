@@ -26,7 +26,7 @@ by both the C generator and the Go test.
 ## What is covered
 
 | fixture | contents |
-|---|---|
+| --- | --- |
 | `rng_*` | 1,664 values: raw stream, floats, ranges, gaussian & inverse-gaussian distributions, dice (MT and CMWC, 4 seeds each) |
 | `bres` | 53 cells across 7 lines (all octants, degenerate, negative coords) |
 | `fov` | 7,264 cells: 8 algorithms x 6 scenarios (2 maps, radius/unlimited, lightWalls on/off, corner POV) |

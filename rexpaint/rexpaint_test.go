@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"golibtcod/color"
-	"golibtcod/console"
+	"github.com/shindakun/golibtcod/color"
+	"github.com/shindakun/golibtcod/console"
 )
 
 func sample(w, h int) *console.Console {
@@ -44,7 +44,7 @@ func TestRoundTripSingleLayer(t *testing.T) {
 				t.Fatalf("(%d,%d) glyph %U != %U", x, y, rune(a.Ch), rune(b.Ch))
 			}
 			if a.Fg != b.Fg || a.Bg != b.Bg {
-				t.Fatalf("(%d,%d) colour %+v/%+v != %+v/%+v", x, y, a.Fg, a.Bg, b.Fg, b.Bg)
+				t.Fatalf("(%d,%d) color %+v/%+v != %+v/%+v", x, y, a.Fg, a.Bg, b.Fg, b.Bg)
 			}
 		}
 	}
@@ -102,7 +102,7 @@ func TestMultiLayerAndCombine(t *testing.T) {
 	}
 	// where the overlay was fuchsia, the base must show through
 	if got := flat.CharBackground(0, 0); got != color.Blue {
-		t.Errorf("key colour was not treated as transparent: %+v", got)
+		t.Errorf("key color was not treated as transparent: %+v", got)
 	}
 }
 

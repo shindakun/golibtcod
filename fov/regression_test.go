@@ -3,7 +3,7 @@ package fov
 import "testing"
 
 // Permissive(p) used to compute Permissive0+p unchecked, so an out-of-range
-// grade silently aliased a neighbouring algorithm: Permissive(-1) ran
+// grade silently aliased a neighboring algorithm: Permissive(-1) ran
 // recursive shadowcasting and returned a nil error.
 func TestPermissiveRejectsOutOfRange(t *testing.T) {
 	for _, p := range []int{-100, -9, -1, 9, 12, 100} {

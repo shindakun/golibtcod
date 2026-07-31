@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"strings"
 
-	"golibtcod/color"
+	"github.com/shindakun/golibtcod/color"
 )
 
 type bbox struct {

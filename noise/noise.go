@@ -14,7 +14,7 @@ package noise
 import (
 	"math"
 
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 type Type int

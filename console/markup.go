@@ -1,17 +1,17 @@
 package console
 
-// Legacy colour-control markup, ported from libtcod's console_printing.c.
+// Legacy color-control markup, ported from libtcod's console_printing.c.
 //
 // Ported from libtcod (github.com/libtcod/libtcod), BSD 3-Clause License,
 // Copyright © 2008-2026, Jice and the libtcod contributors.
 //
-// libtcod's older printing API lets a string carry inline colour changes
+// libtcod's older printing API lets a string carry inline color changes
 // using control characters in the 1..8 range:
 //
 //	ColCtrl1..ColCtrl5   switch to a preset fg/bg pair (see SetColorControl)
 //	ColCtrlForeRGB       followed by three bytes: set foreground to that RGB
 //	ColCtrlBackRGB       followed by three bytes: set background to that RGB
-//	ColCtrlStop          revert to the console's default colours
+//	ColCtrlStop          revert to the console's default colors
 //
 // Because the RGB forms embed raw bytes in the string, a channel value of
 // zero would terminate a C string, so libtcod's convention is that
@@ -19,13 +19,13 @@ package console
 // MarkupForeRGB/MarkupBackRGB, which do the offsetting for you.
 //
 // This is legacy surface, kept for porting existing libtcod content. New
-// code should use PrintEx and change colours between calls.
+// code should use PrintEx and change colors between calls.
 
 import (
 	"strings"
 	"unicode/utf8"
 
-	"golibtcod/color"
+	"github.com/shindakun/golibtcod/color"
 )
 
 // ColCtrl values are the in-string control characters.
@@ -69,22 +69,22 @@ func MarkupFore(index int) string {
 	return string(rune(index))
 }
 
-// MarkupStop returns the control string that reverts to default colours.
+// MarkupStop returns the control string that reverts to default colors.
 func MarkupStop() string { return string(rune(ColCtrlStop)) }
 
-// MarkupForeRGB builds an inline foreground-colour control sequence.
+// MarkupForeRGB builds an inline foreground-color control sequence.
 // Channel values are offset by 1 so no embedded byte is zero, matching
 // libtcod's convention.
 func MarkupForeRGB(c color.RGB) string {
 	return string([]rune{ColCtrlForeRGB, rune(c.R) + 1, rune(c.G) + 1, rune(c.B) + 1})
 }
 
-// MarkupBackRGB builds an inline background-colour control sequence.
+// MarkupBackRGB builds an inline background-color control sequence.
 func MarkupBackRGB(c color.RGB) string {
 	return string([]rune{ColCtrlBackRGB, rune(c.R) + 1, rune(c.G) + 1, rune(c.B) + 1})
 }
 
-// StripMarkup removes all colour control sequences from a string,
+// StripMarkup removes all color control sequences from a string,
 // returning the text as it will actually appear. Useful for measuring
 // widths before printing.
 func StripMarkup(s string) string {
@@ -94,7 +94,7 @@ func StripMarkup(s string) string {
 	for i := 0; i < len(runes); i++ {
 		switch {
 		case runes[i] == ColCtrlForeRGB || runes[i] == ColCtrlBackRGB:
-			i += 3 // skip the three colour bytes
+			i += 3 // skip the three color bytes
 		case runes[i] > 0 && runes[i] <= ColCtrlStop:
 			// a bare control code: skip it
 		default:
@@ -107,10 +107,10 @@ func StripMarkup(s string) string {
 // MarkupWidth returns the printed width of a string with markup removed.
 func MarkupWidth(s string) int { return utf8.RuneCountInString(StripMarkup(s)) }
 
-// PrintMarkup prints a string containing legacy colour-control codes,
-// honouring alignment and the console's default colours.
+// PrintMarkup prints a string containing legacy color-control codes,
+// honoring alignment and the console's default colors.
 //
-// This is TCOD_console_print_internal_'s colour handling: control codes
+// This is TCOD_console_print_internal_'s color handling: control codes
 // change the pen mid-string, ColCtrlStop restores the console defaults,
 // and the codes themselves occupy no cells.
 func (c *Console) PrintMarkup(x, y int, s string, alignment Alignment, flag BkgndFlag) {

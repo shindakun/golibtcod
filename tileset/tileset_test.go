@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"golibtcod/color"
+	"github.com/shindakun/golibtcod/color"
 )
 
 func solidTile(t *Tileset) []color.RGBA {

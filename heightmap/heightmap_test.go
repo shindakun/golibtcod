@@ -3,8 +3,8 @@ package heightmap
 import (
 	"testing"
 
-	"golibtcod/noise"
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/noise"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 func TestAddHillAndNormalize(t *testing.T) {

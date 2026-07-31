@@ -24,8 +24,8 @@ import (
 	"strconv"
 	"strings"
 
-	"golibtcod/color"
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/color"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 // Type mirrors TCOD_value_type_t: the value types a property can declare.

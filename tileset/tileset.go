@@ -25,7 +25,7 @@ package tileset
 import (
 	"fmt"
 
-	"golibtcod/color"
+	"github.com/shindakun/golibtcod/color"
 )
 
 const (

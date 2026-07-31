@@ -9,7 +9,7 @@ import (
 	"io"
 	"strings"
 
-	"golibtcod/console"
+	"github.com/shindakun/golibtcod/console"
 )
 
 // Options controls terminal output.

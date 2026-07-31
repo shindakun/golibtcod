@@ -8,8 +8,8 @@ package heightmap
 import (
 	"math"
 
-	"golibtcod/noise"
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/noise"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 const (

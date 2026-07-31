@@ -9,7 +9,7 @@ package path
 import (
 	"math"
 
-	"golibtcod/fov"
+	"github.com/shindakun/golibtcod/fov"
 )
 
 // CostFunc mirrors TCOD_path_func_t: returns the cost to move from
@@ -261,10 +261,10 @@ func (p *AStar) Compute(ox, oy, dx, dy int) bool {
 	if ox == dx && oy == dy {
 		return true
 	}
-	if !(uint(ox) < uint(p.w) && uint(oy) < uint(p.h)) {
+	if uint(ox) >= uint(p.w) || uint(oy) >= uint(p.h) {
 		return false
 	}
-	if !(uint(dx) < uint(p.w) && uint(dy) < uint(p.h)) {
+	if uint(dx) >= uint(p.w) || uint(dy) >= uint(p.h) {
 		return false
 	}
 	for i := range p.grid {
@@ -394,7 +394,7 @@ func NewDijkstraUsingFunc(w, h int, fn CostFunc, diagonalCost float32) *Dijkstra
 func (d *Dijkstra) Compute(rootX, rootY int) {
 	mx, my := d.w, d.h
 	mMax := mx * my
-	if !(uint(rootX) < uint(mx) && uint(rootY) < uint(my)) {
+	if uint(rootX) >= uint(mx) || uint(rootY) >= uint(my) {
 		return
 	}
 	root := uint32(rootY*mx + rootX)
@@ -486,7 +486,7 @@ func (d *Dijkstra) Compute(rootX, rootY int) {
 
 // Distance is TCOD_dijkstra_get_distance; -1 if unreachable.
 func (d *Dijkstra) Distance(x, y int) float32 {
-	if !(uint(x) < uint(d.w) && uint(y) < uint(d.h)) {
+	if uint(x) >= uint(d.w) || uint(y) >= uint(d.h) {
 		return -1.0
 	}
 	v := d.distances[y*d.w+x]
@@ -507,7 +507,7 @@ func (d *Dijkstra) PathSet(x, y int) bool {
 	if d.diagonalCost == 0 {
 		iMax = 4
 	}
-	if !(uint(x) < uint(d.w) && uint(y) < uint(d.h)) {
+	if uint(x) >= uint(d.w) || uint(y) >= uint(d.h) {
 		return false
 	}
 	if d.intDistance(x, y) == dijkstraInfinity {

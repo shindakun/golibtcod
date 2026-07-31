@@ -11,9 +11,9 @@ import (
 	"math/rand"
 	"os"
 
-	"golibtcod/color"
-	"golibtcod/console"
-	"golibtcod/tileset"
+	"github.com/shindakun/golibtcod/color"
+	"github.com/shindakun/golibtcod/console"
+	"github.com/shindakun/golibtcod/tileset"
 )
 
 const CellPx = 8 // glyph cell is 8x8 source pixels
@@ -201,7 +201,7 @@ func (o Options) coverage(ch int, cw, chh int) []bool {
 }
 
 // Render draws the console and writes a PNG. This is the whole presenter.
-func Render(c *console.Console, path string, o Options) error {
+func Render(c *console.Console, path string, o Options) (err error) {
 	if o.Scale < 1 {
 		o.Scale = 1
 	}
@@ -232,7 +232,13 @@ func Render(c *console.Console, path string, o Options) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	// Checked rather than deferred: a failed close on a write path means a
+	// truncated PNG, which must not be reported as success.
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	return png.Encode(f, img)
 }
 

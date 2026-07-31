@@ -3,7 +3,7 @@ package console
 import (
 	"testing"
 
-	"golibtcod/color"
+	"github.com/shindakun/golibtcod/color"
 )
 
 func TestBlendModes(t *testing.T) {

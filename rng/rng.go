@@ -434,7 +434,7 @@ func atoiPrefix(s string) int {
 // MaxRolls bounds Roll's iteration count. ParseDice reproduces C's 32-bit
 // atoi exactly, so "99999999999d6" yields 1215752191 rolls in both languages;
 // C spends minutes on that, which in Go would let a config string hang the
-// process. Counts above this are clamped rather than honoured.
+// process. Counts above this are clamped rather than honored.
 const MaxRolls = 1 << 20
 
 // Roll rolls dice (TCOD_random_dice_roll). The roll count is clamped to

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"golibtcod/namegen"
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/namegen"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 //go:embed fixtures_namegen.txt

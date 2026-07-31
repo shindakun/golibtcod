@@ -1,0 +1,53 @@
+{
+  // markdownlint-cli2 configuration.
+  // Rule reference: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+  "config": {
+    "default": true,
+
+    // MD004: unordered list bullets must be consistent within the repo's docs.
+    "MD004": { "style": "consistent" },
+
+    // MD010: hard tabs. Go code samples are gofmt output, which indents with
+    // tabs, so tabs inside fenced code are correct and must not be "fixed".
+    // Still flag stray tabs in prose.
+    "MD010": { "code_blocks": false },
+
+    // MD013: line length. Design/prose docs use long lines; do not wrap prose.
+    "MD013": false,
+
+    // MD024: allow duplicate heading text in different sections. The build log
+    // repeats "Results after session N" and the review findings repeat
+    // "Suggested fix" under each numbered finding.
+    "MD024": { "siblings_only": true },
+
+    // MD025: the build log ends with a second top-level heading, the Deferred
+    // Register. That is deliberate: the register is a standing document that
+    // outlives any one session entry, not a subsection of the last one.
+    "MD025": false,
+
+    // MD046: both fenced and indented code blocks are used. Indented blocks
+    // are shell transcripts; fenced blocks carry a language for highlighting.
+    "MD046": false,
+
+    // MD029: ordered lists use incrementing numbers.
+    "MD029": { "style": "ordered" },
+
+    // MD033: allow inline HTML where genuinely needed.
+    "MD033": false,
+
+    // MD036: allow emphasis used as a pseudo-heading.
+    "MD036": false,
+
+    // MD040: fenced code blocks do not have to declare a language. Several
+    // blocks are captured C output, test logs, or ASCII glyph art rather than
+    // source in any language.
+    "MD040": false,
+
+    // MD041: first line does not have to be a top-level heading.
+    "MD041": false
+  },
+
+  "ignores": [
+    "**/node_modules/**"
+  ]
+}

@@ -3,7 +3,7 @@ package console
 import (
 	"testing"
 
-	"golibtcod/color"
+	"github.com/shindakun/golibtcod/color"
 )
 
 // C compares the whole flag to TCOD_BKGND_DEFAULT; testing only the low byte

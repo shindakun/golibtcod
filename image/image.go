@@ -24,8 +24,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"golibtcod/color"
-	"golibtcod/console"
+	"github.com/shindakun/golibtcod/color"
+	"github.com/shindakun/golibtcod/console"
 )
 
 type mipmap struct {
@@ -267,7 +267,7 @@ func (img *Image) replace(other *Image) {
 }
 
 // Scale is TCOD_image_scale: supersampled when shrinking, nearest
-// neighbour when growing.
+// neighbor when growing.
 func (img *Image) Scale(newW, newH int) {
 	width, height := img.Size()
 	if (newW == width && newH == height) || newW <= 0 || newH <= 0 {
@@ -276,7 +276,7 @@ func (img *Image) Scale(newW, newH int) {
 	newImage := New(newW, newH)
 
 	if newW < width && newH < height {
-		// scale down with supersampling: fractional edges, centre, corners
+		// scale down with supersampling: fractional edges, center, corners
 		for py := 0; py < newH; py++ {
 			y0 := float32(py) * float32(height) / float32(newH)
 			y0floor := float32(math.Floor(float64(y0)))
@@ -347,7 +347,7 @@ func (img *Image) Scale(newW, newH int) {
 			}
 		}
 	} else {
-		// scale up with nearest neighbour
+		// scale up with nearest neighbor
 		for py := 0; py < newH; py++ {
 			srcy := py * height / newH
 			for px := 0; px < newW; px++ {
@@ -411,7 +411,7 @@ func (img *Image) BlitRect(c *console.Console, x, y, w, h int, flag console.Bkgn
 }
 
 // Blit is TCOD_image_blit: draw the image into a console's background
-// layer, centred on (x,y), with optional scaling and rotation.
+// layer, centered on (x,y), with optional scaling and rotation.
 func (img *Image) Blit(c *console.Console, x, y float32, flag console.BkgndFlag, scaleX, scaleY, angle float32) {
 	if img == nil || c == nil || scaleX == 0 || scaleY == 0 || flag == console.BkgndNone {
 		return
@@ -523,7 +523,7 @@ func generateQuadrantGraphic(desired [4]color.RGB) console.Tile {
 			break
 		}
 	}
-	if quadrantIndex == 4 { // solid colour
+	if quadrantIndex == 4 { // solid color
 		c := desired[0]
 		rgba := color.RGBA{R: c.R, G: c.G, B: c.B, A: 255}
 		return console.Tile{Ch: ' ', Fg: rgba, Bg: rgba}
@@ -533,14 +533,14 @@ func generateQuadrantGraphic(desired [4]color.RGB) console.Tile {
 	quadrantMask |= 1 << (quadrantIndex - 1)
 
 	for quadrantIndex++; quadrantIndex < 4; quadrantIndex++ {
-		switch {
-		case desired[quadrantIndex] == palette[0]:
+		switch desired[quadrantIndex] {
+		case palette[0]:
 			weight[0]++
-		case desired[quadrantIndex] == palette[1]:
+		case palette[1]:
 			quadrantMask |= 1 << (quadrantIndex - 1)
 			weight[1]++
 		default:
-			// only two colours are representable: merge the closest pair
+			// only two colors are representable: merge the closest pair
 			dist0q := rgbSquaredDistance(desired[quadrantIndex], palette[0])
 			dist1q := rgbSquaredDistance(desired[quadrantIndex], palette[1])
 			dist01 := rgbSquaredDistance(palette[0], palette[1])
@@ -715,12 +715,19 @@ func (img *Image) ToGoImage() image.Image {
 }
 
 // Save writes the image as a PNG (TCOD_image_save).
-func (img *Image) Save(path string) error {
+//
+// Close is checked rather than deferred: on a write path a failed flush
+// means a truncated file, and deferring would report success anyway.
+func (img *Image) Save(path string) (err error) {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	return png.Encode(f, img.ToGoImage())
 }
 

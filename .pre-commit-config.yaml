@@ -1,0 +1,69 @@
+# Pre-commit hooks for golibtcod.
+# Install once:  pre-commit install   (or: make hooks)
+# Run on all:    pre-commit run --all-files
+# Docs: https://pre-commit.com
+repos:
+  # Generic hygiene.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        # Golden fixtures are captured byte-for-byte from a C build and the
+        # BDF font is upstream data; neither is ours to reformat.
+        exclude: ^internal/fixtures/.*\.(txt|cfg|bdf)$
+      - id: end-of-file-fixer
+        exclude: ^internal/fixtures/.*\.(txt|cfg|bdf)$
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        exclude: ^internal/fixtures/.*\.(txt|cfg|bdf)$
+
+  # Go: format, vet, build, test, and lint. These use the local toolchain so
+  # the versions match CI and your shell.
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        entry: gofmt -l -w
+        language: system
+        types: [go]
+        pass_filenames: true
+
+      - id: go-vet
+        name: go vet
+        entry: go vet ./...
+        language: system
+        types: [go]
+        pass_filenames: false
+
+      - id: go-build
+        name: go build
+        # -o /dev/null so no binary is dropped in the repo root.
+        entry: go build -o /dev/null ./...
+        language: system
+        types: [go]
+        pass_filenames: false
+
+      - id: go-test
+        name: go test
+        entry: go test ./...
+        language: system
+        types: [go]
+        pass_filenames: false
+
+      - id: golangci-lint
+        name: golangci-lint
+        entry: golangci-lint run
+        language: system
+        types: [go]
+        pass_filenames: false
+
+  # Markdown lint (config is .markdownlint-cli2.jsonc, discovered automatically).
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.0
+    hooks:
+      - id: markdownlint-cli2

@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 func TestRangeAndDeterminism(t *testing.T) {

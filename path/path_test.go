@@ -3,7 +3,7 @@ package path
 import (
 	"testing"
 
-	"golibtcod/fov"
+	"github.com/shindakun/golibtcod/fov"
 )
 
 func mapFrom(rows []string) *fov.Map {

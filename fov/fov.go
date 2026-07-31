@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"math"
 
-	"golibtcod/bresenham"
+	"github.com/shindakun/golibtcod/bresenham"
 )
 
 // Algorithm mirrors TCOD_fov_algorithm_t.
@@ -38,7 +38,7 @@ const (
 // Permissive returns the algorithm with permissiveness p in [0,8].
 //
 // Out-of-range values return AlgorithmInvalid, which ComputeFov rejects.
-// Unvalidated arithmetic here would silently alias a neighbouring member
+// Unvalidated arithmetic here would silently alias a neighboring member
 // (Permissive(-1) would be Shadow, Permissive(9) would be Restrictive), so
 // a bad grade must not look like a valid algorithm. C validates the same
 // range and returns TCOD_E_INVALID_ARGUMENT.

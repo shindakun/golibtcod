@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"golibtcod/color"
-	"golibtcod/console"
+	"github.com/shindakun/golibtcod/color"
+	"github.com/shindakun/golibtcod/console"
 )
 
 func TestRenderEmitsTruecolor(t *testing.T) {

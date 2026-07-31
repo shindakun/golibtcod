@@ -13,13 +13,13 @@ import (
 	"strings"
 	"testing"
 
-	"golibtcod/bresenham"
-	"golibtcod/bsp"
-	"golibtcod/fov"
-	"golibtcod/heightmap"
-	"golibtcod/noise"
-	"golibtcod/path"
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/bresenham"
+	"github.com/shindakun/golibtcod/bsp"
+	"github.com/shindakun/golibtcod/fov"
+	"github.com/shindakun/golibtcod/heightmap"
+	"github.com/shindakun/golibtcod/noise"
+	"github.com/shindakun/golibtcod/path"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 //go:embed fixtures.txt

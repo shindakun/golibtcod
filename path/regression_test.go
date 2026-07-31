@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"golibtcod/fov"
+	"github.com/shindakun/golibtcod/fov"
 )
 
 // The Dijkstra pending queue could be driven one slot past the end of

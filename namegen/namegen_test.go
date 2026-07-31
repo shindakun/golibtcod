@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 const cfg = `

@@ -11,31 +11,43 @@ algorithm structure, C constants, and preserved quirks; see
 
 ## Packages
 
-| package     | libtcod source            | contents |
-|-------------|---------------------------|----------|
-| `rng`       | mersenne_c.c              | MT19937 + CMWC, gaussian distributions, dice |
-| `bresenham` | bresenham_c.c             | line iterator / callback / points |
-| `fov`       | fov_c.c + 6 algo files    | Map + BASIC, DIAMOND, SHADOW, PERMISSIVE 0-8, RESTRICTIVE (MRPAS), SYMMETRIC_SHADOWCAST |
-| `path`      | path_c.c                  | classic A* + Mingos' Dijkstra |
-| `bsp`       | bsp_c.c                   | splits, traversals, FindNode |
-| `noise`     | noise_c.c                 | Perlin, simplex, wavelet; fbm, turbulence (1-4D) |
-| `heightmap` | heightmap_c.c             | hills, fbm, erosion, kernels, voronoi, MPD |
-| `color`     | color.c                   | RGB/RGBA ops, HSV, gradients, alpha blend |
-| `console`   | console.c (+ drawing)     | tiles, 13 blend modes, blit w/ key color, print |
-| `namegen`   | namegen_c.c               | syllable-set name generator w/ rule wildcards |
-| `parser`    | parser_c.c / lex_c.c      | libtcod .cfg format + optional schema validation (clean-room; divergences measured and documented) |
-| `image`     | image_c.c                 | mipmapped images, blit to console, subcell 2x rendering |
-| `rexpaint`  | console_rexpaint.c        | REXPaint `.xp` read/write, layer flattening |
-| `tileset`   | tileset.c / tileset_bdf.c | tile atlas + BDF font loading (SDL/TrueType paths excluded by design) |
-| `present/pngout` | (new)                | software renderer, built-in 8x8 font or any `tileset` |
-| `present/term`   | (new)                | ANSI truecolor terminal renderer |
+| package | libtcod source | contents |
+| --- | --- | --- |
+| `rng` | mersenne_c.c | MT19937 + CMWC, gaussian distributions, dice |
+| `bresenham` | bresenham_c.c | line iterator / callback / points |
+| `fov` | fov_c.c + 6 algo files | Map + BASIC, DIAMOND, SHADOW, PERMISSIVE 0-8, RESTRICTIVE (MRPAS), SYMMETRIC_SHADOWCAST |
+| `path` | path_c.c | classic A* + Mingos' Dijkstra |
+| `bsp` | bsp_c.c | splits, traversals, FindNode |
+| `noise` | noise_c.c | Perlin, simplex, wavelet; fbm, turbulence (1-4D) |
+| `heightmap` | heightmap_c.c | hills, fbm, erosion, kernels, voronoi, MPD |
+| `color` | color.c | RGB/RGBA ops, HSV, gradients, alpha blend |
+| `console` | console.c (+ drawing) | tiles, 13 blend modes, blit w/ key color, print |
+| `namegen` | namegen_c.c | syllable-set name generator w/ rule wildcards |
+| `parser` | parser_c.c / lex_c.c | libtcod .cfg format + optional schema validation (clean-room; divergences measured and documented) |
+| `image` | image_c.c | mipmapped images, blit to console, subcell 2x rendering |
+| `rexpaint` | console_rexpaint.c | REXPaint `.xp` read/write, layer flattening |
+| `tileset` | tileset.c / tileset_bdf.c | tile atlas + BDF font loading (SDL/TrueType paths excluded by design) |
+| `present/pngout` | (new) | software renderer, built-in 8x8 font or any `tileset` |
+| `present/term` | (new) | ANSI truecolor terminal renderer |
 
 ## Quick start
+
+Add it to a module:
+
+    go get github.com/shindakun/golibtcod
+
+Or work on the port itself:
 
     go test ./...
     go run ./cmd/sample     # writes sample_dungeon.png
 
 ```go
+import (
+    "github.com/shindakun/golibtcod/fov"
+    "github.com/shindakun/golibtcod/path"
+    "github.com/shindakun/golibtcod/rng"
+)
+
 r := rng.New(rng.CMWC, 0x5EED)
 m := fov.NewMap(80, 50)
 // ... set properties ...

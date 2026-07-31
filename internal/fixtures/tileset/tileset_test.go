@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"golibtcod/tileset"
+	"github.com/shindakun/golibtcod/tileset"
 )
 
 // parseFixture reads the C dump: a "cell W H" line, then "cp N" blocks each

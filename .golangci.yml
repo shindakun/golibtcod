@@ -1,0 +1,78 @@
+# golangci-lint configuration for golibtcod.
+# Run locally with: golangci-lint run
+# Docs: https://golangci-lint.run/usage/configuration/
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: standard
+  enable:
+    - errcheck       # unchecked errors
+    - govet          # vet
+    - ineffassign    # ineffectual assignments
+    - misspell       # common spelling mistakes
+    - revive         # style/lint rules
+    - staticcheck    # advanced static analysis
+    - unconvert      # unnecessary conversions
+    - unparam        # unused function params
+    - unused         # unused code
+  settings:
+    misspell:
+      locale: US
+    revive:
+      rules:
+        # revive's "exported" rule wants a doc comment on every exported
+        # symbol. Disabled deliberately: the exported surface here mirrors
+        # libtcod's C API one-for-one, and the interesting functions already
+        # name their C original ("Blit is TCOD_console_blit"). The rest are
+        # self-describing accessors (BSP.Left, RGB.Equals,
+        # Console.BackgroundFlag). Requiring a comment on each would add ~50
+        # restatements of the identifier and bury the notes that matter,
+        # which are the preserved-quirk and divergence comments.
+        - name: exported
+          disabled: true
+  exclusions:
+    rules:
+      # Test files may be a little looser.
+      - path: _test\.go
+        linters:
+          - errcheck
+          - unparam
+
+      # This is a line-by-line port of C. Several constructs are deliberately
+      # kept in the shape the C source has so the two can be diffed against
+      # each other, and the preserved-quirk comments explain why. Rewriting
+      # them to idiomatic Go would break the fidelity the project exists for.
+      - path: (fov|path|noise|heightmap|image|rng)/
+        linters:
+          - gocyclo
+          - revive
+        text: "(cyclomatic|cognitive|too many|confusing-naming)"
+
+      # min/max/clamp helpers mirror C's TCOD_MIN/TCOD_MAX/TCOD_CLAMP macros.
+      # unparam notices a given call site always passes 0, but these are
+      # general-purpose helpers kept in the C shape.
+      - path: (heightmap|image|noise)/
+        linters:
+          - unparam
+        text: "always receives"
+
+      # Close on a read-only file: nothing is buffered, so the error is not
+      # actionable. Write paths check it explicitly (see rexpaint.Save and
+      # pngout.Render), because there a failed flush means a truncated file.
+      - path: (rexpaint/rexpaint\.go|cmd/sample/main\.go|image/image\.go)
+        linters:
+          - errcheck
+        text: "\\.Close"
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/shindakun/golibtcod

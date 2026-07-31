@@ -217,8 +217,8 @@ func (m *Map) restrictiveQuadrant(povX, povY, maxRadius int, lightWalls bool, dx
 				if obstaclesInLastLine > 0 {
 					prev := c - m.w*dy
 					prevSide := c - m.w*dy - dx
-					if !(m.cells[prev].fov && m.cells[prev].transparent) &&
-						!(m.cells[prevSide].fov && m.cells[prevSide].transparent) {
+					if (!m.cells[prev].fov || !m.cells[prev].transparent) &&
+						(!m.cells[prevSide].fov || !m.cells[prevSide].transparent) {
 						visible = false
 					} else {
 						for idx := 0; idx < obstaclesInLastLine && visible; idx++ {
@@ -302,8 +302,8 @@ func (m *Map) restrictiveQuadrant(povX, povY, maxRadius int, lightWalls bool, dx
 				if obstaclesInLastLine > 0 {
 					prev := c - dx
 					prevSide := c - m.w*dy - dx
-					if !(m.cells[prev].fov && m.cells[prev].transparent) &&
-						!(m.cells[prevSide].fov && m.cells[prevSide].transparent) {
+					if (!m.cells[prev].fov || !m.cells[prev].transparent) &&
+						(!m.cells[prevSide].fov || !m.cells[prevSide].transparent) {
 						visible = false
 					} else {
 						for idx := 0; idx < obstaclesInLastLine && visible; idx++ {

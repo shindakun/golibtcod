@@ -5,7 +5,7 @@
 // See LICENSE.txt at the repository root.
 package bsp
 
-import "golibtcod/rng"
+import "github.com/shindakun/golibtcod/rng"
 
 // BSP mirrors TCOD_bsp_t. Children are Left (sons) and Right (sons.next).
 type BSP struct {

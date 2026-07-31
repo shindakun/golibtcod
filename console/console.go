@@ -7,7 +7,7 @@
 // See LICENSE.txt at the repository root.
 package console
 
-import "golibtcod/color"
+import "github.com/shindakun/golibtcod/color"
 
 // BkgndFlag mirrors TCOD_bkgnd_flag_t. For AddAlpha/Alpha use the
 // AddAlpha()/Alpha() constructors, which encode the alpha in the flag as

@@ -3,7 +3,7 @@ package heightmap
 import (
 	"testing"
 
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 // initSz is min(W,H)-1, so the corner seeding indexed Values[-1] on a 1x1

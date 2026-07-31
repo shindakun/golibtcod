@@ -17,8 +17,8 @@ import (
 	"fmt"
 	"strings"
 
-	"golibtcod/parser"
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/parser"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 // Generator is one syllable set (namegen_t).

@@ -3,7 +3,7 @@ package bsp
 import (
 	"testing"
 
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 func TestSplitOnceGeometry(t *testing.T) {

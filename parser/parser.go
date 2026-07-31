@@ -139,7 +139,7 @@ func (l *lexer) skipSpaceAndComments() {
 			}
 		case c == '/' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '*':
 			l.pos += 2
-			for l.pos+1 < len(l.src) && !(l.src[l.pos] == '*' && l.src[l.pos+1] == '/') {
+			for l.pos+1 < len(l.src) && (l.src[l.pos] != '*' || l.src[l.pos+1] != '/') {
 				if l.src[l.pos] == '\n' {
 					l.line++
 				}
@@ -314,14 +314,14 @@ func (l *lexer) parseStruct() (*Struct, error) {
 			l.pos++
 			l.skipSpaceAndComments()
 			var v Value
-			switch {
-			case l.src[l.pos] == '"':
+			switch l.src[l.pos] {
+			case '"':
 				str, err := l.quoted()
 				if err != nil {
 					return nil, err
 				}
 				v = Value{Raw: str}
-			case l.src[l.pos] == '[':
+			case '[':
 				lv, err := l.list()
 				if err != nil {
 					return nil, err

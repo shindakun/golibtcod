@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"os"
 
-	"golibtcod/bsp"
-	"golibtcod/color"
-	"golibtcod/console"
-	"golibtcod/fov"
-	"golibtcod/noise"
-	"golibtcod/path"
-	"golibtcod/present/pngout"
-	"golibtcod/present/term"
-	"golibtcod/rng"
+	"github.com/shindakun/golibtcod/bsp"
+	"github.com/shindakun/golibtcod/color"
+	"github.com/shindakun/golibtcod/console"
+	"github.com/shindakun/golibtcod/fov"
+	"github.com/shindakun/golibtcod/noise"
+	"github.com/shindakun/golibtcod/path"
+	"github.com/shindakun/golibtcod/present/pngout"
+	"github.com/shindakun/golibtcod/present/term"
+	"github.com/shindakun/golibtcod/rng"
 )
 
 const mapW, mapH = 60, 36

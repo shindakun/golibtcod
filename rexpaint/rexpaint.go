@@ -27,8 +27,8 @@ import (
 	"io"
 	"os"
 
-	"golibtcod/color"
-	"golibtcod/console"
+	"github.com/shindakun/golibtcod/color"
+	"github.com/shindakun/golibtcod/console"
 )
 
 // KeyColor is the transparency key REXPaint uses between layers.
@@ -143,22 +143,35 @@ func Combine(layers []*console.Console) *console.Console {
 }
 
 // Save writes consoles as the layers of an .xp file.
-func Save(path string, layers ...*console.Console) error {
+//
+// Close is checked rather than deferred: on a write path a failed flush
+// means a truncated file, and deferring would report success anyway.
+func Save(path string, layers ...*console.Console) (err error) {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	return Write(f, layers...)
 }
 
 // Write encodes consoles as .xp data to any writer.
-func Write(w io.Writer, layers ...*console.Console) error {
+func Write(w io.Writer, layers ...*console.Console) (err error) {
 	if len(layers) == 0 {
 		return fmt.Errorf("rexpaint: no layers to write")
 	}
 	gz := gzip.NewWriter(w)
-	defer gz.Close()
+	// The gzip trailer is only written on Close, so a dropped error here
+	// yields a file that looks fine until something tries to read it.
+	defer func() {
+		if cerr := gz.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	h := header{Version: -1, LayerCount: int32(len(layers))}
 	if err := binary.Write(gz, binary.LittleEndian, h); err != nil {

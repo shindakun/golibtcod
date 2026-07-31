@@ -7,7 +7,8 @@ fetched 2026-07-27. Design doc: gotcod_port_design.md v0.1.
 ## 2026-07-27: session 1
 
 ### Setup
-- Module `golibtcod`, Go 1.22 (Ubuntu toolchain; no module proxy in this
+
+- Module `github.com/shindakun/golibtcod`, Go 1.22 (Ubuntu toolchain; no module proxy in this
   environment, so the port is stdlib-only by construction, which matches the
   design goal "zero third-party deps in core").
 - Fetched C sources for: fov (all 6 algorithm files + fov_c), mersenne,
@@ -20,6 +21,7 @@ fetched 2026-07-27. Design doc: gotcod_port_design.md v0.1.
   presenter contract instead, and a consumer can supply its own backend.
 
 ### Scope decisions for this session
+
 - Port order: rng → bresenham → fov → path → bsp → noise → heightmap →
   color → console (+blends/blit) → sample.
 - namegen, parser, image, compat layer: deferred to a later session (logged
@@ -32,6 +34,7 @@ fetched 2026-07-27. Design doc: gotcod_port_design.md v0.1.
 ### Module log
 
 **rng** (`mersenne_c.c` → `rng/rng.go`): Complete.
+
 - MT19937 (init constant 1812433253, standard twist/temper) and CMWC
   (glibc-LCG Q seeding, carry mod 809430660, Marsaglia recommendation).
 - Float scaling kept as `u32 * (1/0xffffffff)` (C uses closed-interval
@@ -42,10 +45,12 @@ fetched 2026-07-27. Design doc: gotcod_port_design.md v0.1.
   (3499211612, 581869302, ...), so the MT path is bit-exact by test.
 
 **bresenham** (`bresenham_c.c` → `bresenham/bresenham.go`): Complete.
+
 - Init/Step/Line as iterator + callback forms; deprecated global-state
   variants dropped (Data struct only).
 
 **fov** (`fov_c.c` + 6 algorithm files → `fov/`): Complete, all 6.
+
 - `fov.go`: Map (transparent/walkable/fov cells), ComputeFov dispatch,
   postprocess quadrant wall-lighting, FOV_BASIC circular raycasting,
   FOV_SHADOW recursive shadowcasting (float32 slopes as in C),
@@ -63,17 +68,19 @@ fetched 2026-07-27. Design doc: gotcod_port_design.md v0.1.
   full pairwise symmetry check for SYMMETRIC_SHADOWCAST.
 
 **path** (`path_c.c` → `path/path.go`): Complete (both pathfinders).
+
 - Classic A*: min-heap keyed on the heuristic array including the
   "slow" heap_reorder path, direction enums (NW..SE with NONE=4),
   walk-with-recalculate, Reverse, Get. Same walk-cost contract
   (map => walkable?1:0, else user CostFunc, <=0 blocks).
 - Mingos' Dijkstra: `(int)(cost*100+0.1)` rounding quirk preserved
   ("(int)(1.41f*100.0f)==140!!!"), insertion-sorted pending queue ported
-  including the dedup shift, distances as u32 * 0.01 on read.
+  including the dedup shift, distances as `u32 * 0.01` on read.
 - Tests: corridor length, detour routing, unreachable, cost-func
   avoidance, exact diagonal distances (2.82 for two 1.41 steps).
 
 **bsp** (`bsp_c.c` → `bsp/bsp.go`): Complete.
+
 - SplitOnce/SplitRecursive with the square-room promotion rules and the
   same rng call order (so a seeded tree matches C shape for a given
   stream); Resize, FindNode, Contains, all five traversal orders.
@@ -81,9 +88,10 @@ fetched 2026-07-27. Design doc: gotcod_port_design.md v0.1.
   exactly once), min-size enforcement, traversal order sanity.
 
 **noise** (`noise_c.c` → `noise/noise.go`): Complete.
+
 - Perlin lattice (incl. two 4D lattice calls that pass trailing 0,0 in
   C: an upstream quirk, preserved and commented), Gustavson simplex
-  1-4D with the exact gradient functions and simplex[64][4] table,
+  1-4D with the exact gradient functions and the `simplex[64][4]` table,
   Cook/DeRose wavelet (32³ tile, downsample/upsample coefficient tables),
   fbm + turbulence with per-octave exponents (1/f, not f^-H, as in C).
 - Constructor consumes the rng stream in C order (256 gradient rows,
@@ -92,6 +100,7 @@ fetched 2026-07-27. Design doc: gotcod_port_design.md v0.1.
 - Tests: determinism, range clamps, all dims, fractal variants, continuity.
 
 **heightmap** (`heightmap_c.c` → `heightmap/heightmap.go`): Complete.
+
 - All live functions: hills, fbm add/scale, interpolation, normals,
   bezier digging, rain erosion, kernel transforms w/ threshold masks,
   voronoi, mid-point displacement. `islandify` is a no-op pending removal
@@ -99,6 +108,7 @@ fetched 2026-07-27. Design doc: gotcod_port_design.md v0.1.
 - Tests: hill/normalize, bilinear center, fbm+erosion, MPD, kernel smooth.
 
 **color** (`color.c` → `color/color.go`): Complete for ops.
+
 - Add/Subtract/Multiply/scalar/Lerp with C rounding, full HSV family
   (sector math, floor-modulo hue wrap), GenMap gradients, RGBA alpha
   blend. Named colors: greys, sepias, and the classic hue wheel + a few
@@ -107,6 +117,7 @@ fetched 2026-07-27. Design doc: gotcod_port_design.md v0.1.
 
 **console** (`console.c` + drawing/printing essentials → `console/`):
 Core complete.
+
 - Tile{Ch,Fg,Bg RGBA}, default fore/back/flag state, all 13 background
   blend flags with alpha-carrying ADDA/ALPH encodings ((flag>>8)&0xFF),
   exact blit (key color, fg/bg alpha, the four glyph-resolution cases),
@@ -124,12 +135,14 @@ recursive-shadowcast torch FOV, A* route overlaid with BKGND_ADD, simplex
 floor texture, rendered to `sample_dungeon.png`. Runs clean.
 
 ### Results
+
 - `go build ./...` clean, `go vet ./...` clean, `go test ./...`:
   8/8 packages with tests pass (color and pngout are exercised via the
   console tests and sample).
 - Zero third-party dependencies anywhere in the tree.
 
 ### Fidelity notes (quirks deliberately preserved)
+
 1. MRPAS horizontal-edge octant double-increments its obstacle index.
 2. Perlin 4D passes 0,0 for the last dimension in two lattice calls.
 3. Dijkstra diagonal cost = (int)(cost*100+0.1); distances truncate to
@@ -139,6 +152,7 @@ floor texture, rendered to `sample_dungeon.png`. Runs clean.
    when a radius is set (C behavior).
 
 ### TODO (next session)
+>
 > **Superseded.** Everything here was cleared in session 2. The live list
 > is the Deferred Register at the end of this document; do not work from
 > this section.
@@ -180,7 +194,7 @@ tolerance policy.
 Result: **everything discrete matches the C code exactly**:
 
 | fixture | volume | result |
-|---|---|---|
+| --- | --- | --- |
 | rng (MT+CMWC, 4 seeds, 6 kinds) | 1,664 values | exact |
 | bresenham (7 lines, all octants) | 53 cells | exact |
 | fov (8 algorithms x 6 scenarios) | 7,264 cells | exact |
@@ -203,6 +217,7 @@ fixtures would now be failing.
 
 Two C-side gotchas hit while building the harness, both logged because
 they'd bite anyone repeating this:
+
 - Current `mersenne.h` no longer declares the short-name getters
   (`TCOD_random_get_f`/`_get_i`) though `mersenne_c.c` still defines them.
   Without an explicit prototype, C's implicit-declaration rule assumed
@@ -266,6 +281,7 @@ demonstrated rather than asserted.
   console/print API covers the actual use cases. Cheap to add later.
 
 ### Results after session 2
+
 - 13 packages; `go build`, `go vet`, `gofmt` all clean.
 - `go test ./...`: 11 packages with tests, all passing, including the
   fixture suite replaying 11,000+ ground-truth values from C.
@@ -297,6 +313,7 @@ the C version's loader. Pixel operations are line-by-line ports; only file
 IO differs.
 
 C semantics preserved that look like bugs and are not:
+
 - `MipmapPixel` selects a level from the texel footprint and then steps
   back one (`if mip > 0 { mip-- }`), trading sharpness for aliasing. My
   first test asserted the sharper behaviour and failed; the test was
@@ -345,6 +362,7 @@ change would need making twice. If someone is porting C++ libtcod code
 they are rewriting it anyway.
 
 ### Results after session 3
+
 - 15 packages. `go build`, `go vet`, `gofmt`, `go test ./...` all clean.
 - Still zero third-party dependencies: the two modules that needed
   external libraries in C (SDL_image, zlib) are covered by the standard
@@ -368,7 +386,7 @@ parser, recording its listener event stream and error strings. Ran the same
 corpus through golibtcod. Results:
 
 | case | libtcod | golibtcod (before) |
-|---|---|---|
+| --- | --- | --- |
 | all value types, nested struct, flag | accepted | **identical output** |
 | C-style comments, `\"` and `\\` escapes | accepted | **identical output** |
 | `#` comment | **syntax error** | accepted |
@@ -412,6 +430,7 @@ to `rng.ParseDice`, so the parser and the roller cannot disagree about what
 `3d6+2` means.
 
 Three deliberate divergences, all pinned by tests:
+
 - **Every** error is reported, in source order, not just the first.
   libtcod stops at its first fatal error. For a config file the full list
   is more useful.
@@ -443,6 +462,7 @@ all **208 names** generated by the C implementation from the same `.cfg`,
 so the lexer change is compatible with real content.
 
 ### Results after session 4
+
 - 15 packages, all building, vetting and testing clean.
 - The parser deviation is now *characterised and bounded* rather than
   vague: agreement is measured, differences are documented in the package
@@ -609,7 +629,7 @@ The C module is ~1,700 lines across five files, and it splits cleanly on
 the dependency line:
 
 | C file | needs | ported |
-|---|---|---|
+| --- | --- | --- |
 | `tileset.c` | nothing | yes |
 | `tileset_bdf.c` | nothing | yes |
 | `tileset_fallback.c` | nothing | no: a hardcoded font blob, and `pngout` already has one |
@@ -682,10 +702,65 @@ This is the seam the session 5 review was really complaining about: the
 glyph table was hardcoded, which is why the sample's A* route rendered as
 walls. A tileset is the general form of that table.
 
+### Project tooling
+
+Added the standard config set, copied from the sibling Go repos so the
+conventions match rather than being invented here: `.markdownlint-cli2.jsonc`,
+`.golangci.yml` (v2 schema), `.github/workflows/ci.yml`,
+`.pre-commit-config.yaml`, and a `.gitignore`. The Makefile gained the usual
+targets (`help`, `build`, `cover`, `lint`, `md-lint`, `tidy`, `hooks`,
+`check`) plus a `fixtures` target for the golden-fixture replay.
+
+CI runs three jobs. `go` does build/vet/test/lint, `docs` runs markdownlint,
+and `fidelity` replays the C-generated fixtures on its own. The last is
+separate deliberately: a failure there means the port diverged from libtcod,
+which is a different kind of problem from a lint or style failure and should
+be legible as such in the checks list.
+
+Running the linters found real problems, not just style noise:
+
+- **Unchecked `Close` on four write paths** (`rexpaint.Save`, `rexpaint.Write`,
+  `pngout.Render`, `image.Save`). `defer f.Close()` runs after `return nil`,
+  so a failed flush was discarded and the caller was told the write
+  succeeded. For `rexpaint.Write` this mattered most: gzip only emits its
+  trailer on `Close`, so the failure mode is a file that looks fine until
+  something reads it. All four now capture the close error into a named
+  return. Read paths still ignore it, with the reasoning recorded in the
+  golangci exclusion.
+- **15 British spellings** (`colour`, `centre`, `neighbour`, `honouring`) in
+  a codebase whose own API is `color`. Normalized to US, matching the sibling
+  repos' `misspell` locale.
+
+Two rules are switched off with reasons rather than worked around. `revive`'s
+`exported` rule wanted doc comments on ~50 self-describing accessors
+(`BSP.Left`, `RGB.Equals`); the interesting functions already name their C
+original, and 50 restatements of the identifier would bury those. `MD060`
+table alignment was normalized to the compact pipe style the other repos use.
+
+Markdown: 87 violations, 69 auto-fixed, the rest either fixed by hand or
+configured off where the construct was deliberate (the build log's second H1
+for the Deferred Register; mixed fenced and indented code blocks). Now 0
+errors across all four documents.
+
+### Module path
+
+`module golibtcod` became `module github.com/shindakun/golibtcod`, matching
+the git remote and the directory it already lives in. The bare name only
+worked for local development; `go get` needs the resolvable path. All 34
+importing files updated, plus the goimports `local-prefixes` setting so
+import grouping still recognises in-repo packages. The README quick start
+now shows the `go get` line and the import block, which it never did.
+
+Prose keeps saying "golibtcod": that is the project's name, and only the
+import path needed to be a URL.
+
 ### Results after session 6
 
-- 17 packages. `go build`, `go vet`, `gofmt`, `go test ./...` all clean.
-- Still zero third-party dependencies.
+- 18 packages. `go build`, `go vet`, `gofmt`, `go test ./...` all clean.
+- `golangci-lint run`: 0 issues. `markdownlint-cli2`: 0 errors.
+- Still zero third-party dependencies in the library itself; the new tooling
+  (golangci-lint, pre-commit, markdownlint) is developer-side only and does
+  not appear in `go.mod`.
 - Fixture suite unchanged, plus glyph bitmaps now verified against C.
 - Deferred register has no open items.
 
@@ -717,7 +792,7 @@ tested. The C++ compat layer moved to "Won't port" below.
 ## Omitted inside completed modules
 
 | item | why |
-|---|---|
+| --- | --- |
 | `heightmap.islandify` | A no-op in current upstream, pending removal. Porting a no-op would be porting a bug. |
 | `heightmap.heat_erosion` | `#if 0` in the C source: dead code upstream. Reinstating it means writing thermal erosion from scratch, not porting. |
 
@@ -729,7 +804,7 @@ Not deferrals. These are architectural substitutions, and listing them here
 stops a future session "finishing the port" by adding them back.
 
 | libtcod | golibtcod | why |
-|---|---|---|
+| --- | --- | --- |
 | SDL renderer, context, input | the presenter interface (`present/*`) | Keeps the core engine-free and headless-testable: the property that makes batch worldgen, replay, CI rendering and the terminal build possible |
 | `tileset_render.c` (SDL), `tileset_truetype.c` (stb_truetype) | the presenter interface | The rendering half of the tileset module. The atlas and BDF loader *are* ported (session 6); only the two files needing external libraries are excluded, and both answer a question the presenters already answer. |
 | global RNG | explicit `*rng.Random` | A process-global generator can't support a seed economy with independent sim and audio streams |
@@ -743,7 +818,7 @@ stops a future session "finishing the port" by adding them back.
 One entry, flagged because "faithful port" is the project's whole premise.
 
 | module | deviation | why |
-|---|---|---|
+| --- | --- | --- |
 | `parser` | **Clean-room, not a line-by-line port.** Divergences measured against the C implementation in session 4 and documented in the package doc; corpus and C harness in `internal/fixtures/parser`. Summary: `#` comments are a golibtcod extension (libtcod rejects them); validation is a separate optional layer rather than schema-first parsing; all errors are reported rather than the first; a type mismatch keeps the offending text instead of substituting zero; golibtcod aborts on a malformed file where libtcod recovers. | `lex_c.c` + `parser_c.c` are ~2,600 lines built on a global lexer and a listener-callback ABI, with no numerical behaviour to preserve. A transliteration would be both unpleasant and un-Go-like. |
 | `image` | File IO uses stdlib `image/png` and `image/jpeg` instead of SDL_image. Pixel operations are line-by-line ports. | SDL is not a dependency, and the stdlib PNG decoder is better than the one being replaced. |
 | `rexpaint` | `compress/gzip` instead of zlib. Format bit-identical. | Same reason: no external dependency. |

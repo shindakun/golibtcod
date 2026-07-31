@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"golibtcod/color"
-	"golibtcod/console"
+	"github.com/shindakun/golibtcod/color"
+	"github.com/shindakun/golibtcod/console"
 )
 
 func renderOne(t *testing.T, ch int, name string) []byte {
