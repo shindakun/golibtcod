@@ -1,0 +1,52 @@
+== case1.cfg
+  struct item_type name=sword
+  prop cost : int = 300
+  prop weight : float = 3.5
+  prop deal_damage : bool = true
+  prop damages : dice = 3d6+2 x1
+  prop col : color = 255,0,0
+  prop initial : char = 'S'
+  flag abstract
+  prop description : string = "A blade, notched."
+  struct sublist name=(none)
+  prop bonus : int = 7
+  end sublist
+  end item_type
+  -> errors=0
+== case2.cfg
+  ERROR error in case2.cfg line 1 : Parser::parse : identifier token expected
+  -> errors=1
+== case3.cfg
+  struct item_type name=spear
+  prop cost : int = 50
+  ERROR error in case3.cfg line 3 : Parser::parseEntity : entity type item_type does not contain undeclared_property
+  -> errors=1
+== case4.cfg
+  struct item_type name=broken
+  prop cost : int = 10
+  ERROR error in case4.cfg line 3 : Parser::parseEntity : identifier or type expected
+  -> errors=1
+== case5.cfg
+  struct item_type name=bad
+  ERROR error in case5.cfg line 2 : parseStringValue : string constant expected instead of 'never closed'
+  prop description : string = "never closed"
+  -> errors=1
+== case6.cfg
+  struct item_type name=mismatch
+  ERROR error in case6.cfg line 2 : parseIntegerValue : integer constant expected instead of 'not a number'
+  prop cost : int = 0
+  -> errors=1
+== case7.cfg
+  ERROR error in case7.cfg line 1 : Parser::parse : unknown entity type monster
+  -> errors=1
+== case8.cfg
+  struct item_type name=axe
+  prop cost : int = 120
+  prop description : string = "he said "hi" and \ left"
+  end item_type
+  -> errors=0
+== case9.cfg
+  struct item_type name=hash
+  prop cost : int = 1
+  ERROR error in case9.cfg line 3 : Parser::parseEntity : identifier or type expected
+  -> errors=1

@@ -1,0 +1,658 @@
+# golibtcod build log
+
+Faithful pure-Go port of libtcod (BSD-3-Clause, © 2008-2026 Jice and the libtcod
+contributors). Ported from the C sources at github.com/libtcod/libtcod @ main,
+fetched 2026-07-27. Design doc: gotcod_port_design.md v0.1.
+
+## 2026-07-27: session 1
+
+### Setup
+- Module `golibtcod`, Go 1.22 (Ubuntu toolchain; no module proxy in this
+  environment, so the port is stdlib-only by construction, which matches the
+  design goal "zero third-party deps in core").
+- Fetched C sources for: fov (all 6 algorithm files + fov_c), mersenne,
+  noise (+noise_defaults), bsp, path (+heapq), heightmap, bresenham, color,
+  console (+drawing/printing/types), tree. LICENSE.txt (BSD-3) retained at
+  repo root; attribution headers in each ported file.
+- Rendering stays out of the library: a graphical backend would mean a
+  third-party dependency, which the zero-dependency rule rules out.
+  `present/pngout` (software renderer w/ embedded 8x8 font) proves the
+  presenter contract instead, and a consumer can supply its own backend.
+
+### Scope decisions for this session
+- Port order: rng → bresenham → fov → path → bsp → noise → heightmap →
+  color → console (+blends/blit) → sample.
+- namegen, parser, image, compat layer: deferred to a later session (logged
+  as TODO at end).
+- Fidelity: exact algorithm/structure port; float32 used where C uses float
+  to keep numeric behavior close. Golden fixtures vs the C build are not
+  possible in-sandbox (no SDL/cmake); substitute: property tests + hand
+  fixtures + C-derived constants. Flagged as follow-up.
+
+### Module log
+
+**rng** (`mersenne_c.c` → `rng/rng.go`): Complete.
+- MT19937 (init constant 1812433253, standard twist/temper) and CMWC
+  (glibc-LCG Q seeding, carry mod 809430660, Marsaglia recommendation).
+- Float scaling kept as `u32 * (1/0xffffffff)` (C uses closed-interval
+  scaling; preserved rather than "fixed").
+- Full distribution family: linear + 4 gaussian variants, GetIntMean etc.,
+  dice parser/roller with C atoi semantics.
+- Verified: seed 5489 reproduces the canonical MT19937 known-answer stream
+  (3499211612, 581869302, ...), so the MT path is bit-exact by test.
+
+**bresenham** (`bresenham_c.c` → `bresenham/bresenham.go`): Complete.
+- Init/Step/Line as iterator + callback forms; deprecated global-state
+  variants dropped (Data struct only).
+
+**fov** (`fov_c.c` + 6 algorithm files → `fov/`): Complete, all 6.
+- `fov.go`: Map (transparent/walkable/fov cells), ComputeFov dispatch,
+  postprocess quadrant wall-lighting, FOV_BASIC circular raycasting,
+  FOV_SHADOW recursive shadowcasting (float32 slopes as in C),
+  FOV_SYMMETRIC_SHADOWCAST (round_half_up/down with FLT_EPSILON factor,
+  radius trim uses `>= radius²`: C behavior, kept).
+- `diamond_restrictive.go`: FOV_DIAMOND perimeter/raymap port (pointer
+  linked list preserved via struct pointers); FOV_RESTRICTIVE (MRPAS 1.2).
+  Preserved C quirk: MRPAS horizontal-edge octant double-increments the
+  obstacle loop index (upstream behavior; flagged with a comment).
+- `permissive.go`: Duerig precise permissive with 0-8 grades; C's
+  double-pointer active-view iterator mirrored with an index passed by
+  pointer; STEP_SIZE=16, offset=8-p, limit=8+p.
+- Tests: POV visibility, open-room completeness, pillar shadows, radius
+  limits, lightWalls=false wall stripping across ALL algorithms, plus a
+  full pairwise symmetry check for SYMMETRIC_SHADOWCAST.
+
+**path** (`path_c.c` → `path/path.go`): Complete (both pathfinders).
+- Classic A*: min-heap keyed on the heuristic array including the
+  "slow" heap_reorder path, direction enums (NW..SE with NONE=4),
+  walk-with-recalculate, Reverse, Get. Same walk-cost contract
+  (map => walkable?1:0, else user CostFunc, <=0 blocks).
+- Mingos' Dijkstra: `(int)(cost*100+0.1)` rounding quirk preserved
+  ("(int)(1.41f*100.0f)==140!!!"), insertion-sorted pending queue ported
+  including the dedup shift, distances as u32 * 0.01 on read.
+- Tests: corridor length, detour routing, unreachable, cost-func
+  avoidance, exact diagonal distances (2.82 for two 1.41 steps).
+
+**bsp** (`bsp_c.c` → `bsp/bsp.go`): Complete.
+- SplitOnce/SplitRecursive with the square-room promotion rules and the
+  same rng call order (so a seeded tree matches C shape for a given
+  stream); Resize, FindNode, Contains, all five traversal orders.
+- Tests: child geometry, exact leaf tiling of the root (every cell covered
+  exactly once), min-size enforcement, traversal order sanity.
+
+**noise** (`noise_c.c` → `noise/noise.go`): Complete.
+- Perlin lattice (incl. two 4D lattice calls that pass trailing 0,0 in
+  C: an upstream quirk, preserved and commented), Gustavson simplex
+  1-4D with the exact gradient functions and simplex[64][4] table,
+  Cook/DeRose wavelet (32³ tile, downsample/upsample coefficient tables),
+  fbm + turbulence with per-octave exponents (1/f, not f^-H, as in C).
+- Constructor consumes the rng stream in C order (256 gradient rows,
+  normalize, Fisher-Yates via GetInt), so seeded tables match.
+- MAX_OCTAVES=128, MAX_DIMENSIONS=4, SIMPLEX_SCALE=0.5, WAVELET_SCALE=2.
+- Tests: determinism, range clamps, all dims, fractal variants, continuity.
+
+**heightmap** (`heightmap_c.c` → `heightmap/heightmap.go`): Complete.
+- All live functions: hills, fbm add/scale, interpolation, normals,
+  bezier digging, rain erosion, kernel transforms w/ threshold masks,
+  voronoi, mid-point displacement. `islandify` is a no-op pending removal
+  upstream; `heat_erosion` is #if 0 in C: both skipped, noted here.
+- Tests: hill/normalize, bilinear center, fbm+erosion, MPD, kernel smooth.
+
+**color** (`color.c` → `color/color.go`): Complete for ops.
+- Add/Subtract/Multiply/scalar/Lerp with C rounding, full HSV family
+  (sector math, floor-modulo hue wrap), GenMap gradients, RGBA alpha
+  blend. Named colors: greys, sepias, and the classic hue wheel + a few
+  misc; the full generated light/dark/desaturated table (~190 names) is
+  deferred (derivable via Lerp/ScaleHSV).
+
+**console** (`console.c` + drawing/printing essentials → `console/`):
+Core complete.
+- Tile{Ch,Fg,Bg RGBA}, default fore/back/flag state, all 13 background
+  blend flags with alpha-carrying ADDA/ALPH encodings ((flag>>8)&0xFF),
+  exact blit (key color, fg/bg alpha, the four glyph-resolution cases),
+  Rect/HLine/VLine/Frame, PrintEx with alignment.
+- Deferred: the legacy %c color-code markup printer, rexpaint IO,
+  unicode legacy wrappers (modern print covers the use cases).
+- Tests: multiply/lighten/add blend math, key-color blit skip, plain-copy
+  blit, alignment, gradient GenMap.
+
+**present/pngout**: software presenter (adapted from an earlier mock to
+golibtcod's RGBA tiles). Proves the presenter contract.
+
+**cmd/sample**: integration demo: CMWC-seeded BSP dungeon + corridors,
+recursive-shadowcast torch FOV, A* route overlaid with BKGND_ADD, simplex
+floor texture, rendered to `sample_dungeon.png`. Runs clean.
+
+### Results
+- `go build ./...` clean, `go vet ./...` clean, `go test ./...`:
+  8/8 packages with tests pass (color and pngout are exercised via the
+  console tests and sample).
+- Zero third-party dependencies anywhere in the tree.
+
+### Fidelity notes (quirks deliberately preserved)
+1. MRPAS horizontal-edge octant double-increments its obstacle index.
+2. Perlin 4D passes 0,0 for the last dimension in two lattice calls.
+3. Dijkstra diagonal cost = (int)(cost*100+0.1); distances truncate to
+   int centicosts.
+4. RNG float scaling divides by 0xffffffff (closed interval).
+5. Symmetric shadowcast trims at >= radius², making the rim asymmetric
+   when a radius is set (C behavior).
+
+### TODO (next session)
+> **Superseded.** Everything here was cleared in session 2. The live list
+> is the Deferred Register at the end of this document; do not work from
+> this section.
+
+- Golden fixtures vs a real C libtcod build (needs cmake/SDL or a
+  wasm/CI harness outside this sandbox); property tests + MT
+  known-answer stream stand in for now.
+- namegen, parser, image/mipmaps, compat layer, full named-color table,
+  legacy color-markup printing, rexpaint.
+- present/term.
+
+---
+
+## 2026-07-28: session 2
+
+Picked up the session-1 TODO list and cleared all of it except the two
+items that are genuinely blocked by the sandbox. Headline: **the "no
+golden fixtures" caveat is gone**: gcc is available, and the libtcod
+modules we care about have no SDL dependency, so the C code itself now
+provides ground truth.
+
+### 1. Golden fixtures vs a real C libtcod build: DONE
+
+Session 1 assumed this needed cmake/SDL. It doesn't: the engine-independent
+translation units compile standalone. Fetched the remaining headers
+(context_viewport.h, tileset.h, etc.: headers only, never linked) and
+compiled 19 C objects with gcc 13.3:
+
+    mersenne_c, bresenham_c, fov_c + all 6 fov algorithms, bsp_c, path_c,
+    heightmap_c, noise_c, color, parser_c, lex_c, namegen_c,
+    error, logging, list_c, tree_c
+
+Wrote two generators (`internal/fixtures/gen.c.txt`,
+`gen_namegen.c.txt`) that link those objects and dump deterministic
+outputs; `internal/fixtures/*_test.go` replays them against the Go port.
+`internal/fixtures/README.md` documents provenance, coverage and the
+tolerance policy.
+
+Result: **everything discrete matches the C code exactly**:
+
+| fixture | volume | result |
+|---|---|---|
+| rng (MT+CMWC, 4 seeds, 6 kinds) | 1,664 values | exact |
+| bresenham (7 lines, all octants) | 53 cells | exact |
+| fov (8 algorithms x 6 scenarios) | 7,264 cells | exact |
+| A* + Dijkstra (paths + distance grid) | full dumps | exact |
+| bsp (3 seeds, pre-order node dumps) | full trees | exact |
+| namegen (3 rule forms, 2 seeds) | 208 names | exact |
+| noise (perlin/simplex/fbm/turb 1-4D, wavelet 1-3D) | 420 values | 341 bit-exact, rest < 1e-5 rel |
+| heightmap (full chain, interp, 33x33 MPD) | 1,388 values | 1333 bit-exact, rest < 1e-5 rel |
+
+The float deltas are C compiler reassociation in long float32 expression
+chains (Go evaluates float32 strictly left-to-right; gcc does not), not
+algorithmic divergence; they appear only in the deep fbm/erosion
+accumulations, and every value agrees to ~7 significant figures.
+
+That the **fov grids match cell-for-cell across all 8 algorithms** is the
+strongest single result here: it independently confirms the preserved
+quirks from session 1 (the MRPAS double-increment, the symmetric-caster
+rim trim) are faithful rather than bugs; had I "fixed" them, these
+fixtures would now be failing.
+
+Two C-side gotchas hit while building the harness, both logged because
+they'd bite anyone repeating this:
+- Current `mersenne.h` no longer declares the short-name getters
+  (`TCOD_random_get_f`/`_get_i`) though `mersenne_c.c` still defines them.
+  Without an explicit prototype, C's implicit-declaration rule assumed
+  `int` return and the first float fixture run emitted garbage
+  (6.95e-310). Fixed with explicit prototypes in the generator.
+- `namegen_c.c` keeps a process-global "already parsed this file" list, so
+  parsing the same filename twice silently reuses the first generator
+  (with its original RNG pointer). The generator uses two identical
+  configs under different names to get a clean second seed.
+
+### 2. namegen + parser: DONE
+
+**parser** (`parser/parser.go`), the libtcod .cfg format: typed
+properties, quoted names, bare flags, nested structs, bracketed lists,
+and all three comment styles (`#`, `//`, `/* */`), with `\"`/`\\` escapes.
+
+This one is a deliberate **clean-room implementation, not a line-by-line
+port**: the only such decision in the project. `lex_c.c` + `parser_c.c`
+are ~2,600 lines built around a global lexer, a listener-callback ABI and
+manual value unions; a faithful transliteration would be both unpleasant
+and un-Go-like, and unlike the algorithm modules there is no numerical
+behavior to preserve. The accepted grammar and value semantics match; the
+API doesn't. Called out here because "faithful port" is the project's
+whole premise and this is the exception.
+
+**namegen** (`namegen/namegen.go`), the generation algorithm *is* a
+faithful port: `namegen_populate_list` tokenizing (including the `/`
+escape and wildcard-dependent `_` handling), all 8 rule wildcards
+(`$P $s $m $e $p $v $c $?`) with `$NN` chance prefixes, `%NN` rule
+selection weights, and the four rubbish-pruning filters
+(triples, illegal substrings, space pruning, 2-and-3-char syllable
+repetition) driving the reject-and-retry loop. RNG call order matches,
+which is exactly what the 208-name fixture proves.
+
+The one intentional API change: C keeps a process-global generator
+registry; golibtcod scopes it to an explicit `*Registry` so multiple sets
+and multiple RNGs can coexist. Also added a retry ceiling (10,000) where
+C loops forever; a config whose filters reject every possible output
+hangs the C version.
+
+### 3. Full named-color table: DONE
+
+`color/named_gen.go`: extracted all 197 named colors from `color.h`'s
+deprecation annotations (they carry the literal RGB triples), emitting
+154 new Go constants alongside the 43 hand-written ones. Spot-checked
+against the C header in `color/color_test.go`.
+
+### 4. present/term: DONE
+
+`present/term/term.go`: ANSI truecolor presenter, 24-bit SGR, with
+run-length collapsing so a uniform row emits one escape sequence rather
+than one per cell. `cmd/sample` now writes `sample_dungeon.ans` next to
+the PNG: same console, two presenters, which is the presenter contract
+demonstrated rather than asserted.
+
+### 5. Still deferred (and why)
+
+- **image / mipmaps, rexpaint IO, legacy `%c` color-markup printing,
+  the C++ compat layer**: deliberately not started. These are I/O and
+  API-shim surface with no algorithmic content, and the modern
+  console/print API covers the actual use cases. Cheap to add later.
+
+### Results after session 2
+- 13 packages; `go build`, `go vet`, `gofmt` all clean.
+- `go test ./...`: 11 packages with tests, all passing, including the
+  fixture suite replaying 11,000+ ground-truth values from C.
+- Still zero third-party dependencies.
+- `make` runs vet + tests; `make sample` regenerates both renders.
+
+---
+
+## 2026-07-28: session 3
+
+Cleared three of the four "deliberately not started" items. The fourth is
+now formally declined rather than deferred.
+
+### image (`image_c.c` -> `image/`): DONE
+
+Mipmapped RGB image with console blitting. Full port: New/Clear/Pixel/
+PutPixel, lazily-generated mipmap chain with dirty invalidation on write,
+MipmapPixel level selection, Invert/HFlip/VFlip/Rotate90, Scale
+(supersampled down, nearest-neighbour up), Blit (fast axis-aligned path
+plus the rotated/scaled path), BlitRect, FromConsole/RefreshConsole, and
+**Blit2x**: the subcell quadrant renderer that doubles a console's
+effective resolution, including the colour-merging logic that reduces four
+pixels to one glyph and a fg/bg pair.
+
+**Deviation, deliberate:** libtcod loads and saves through SDL_image.
+golibtcod uses `image/png` and `image/jpeg` from the standard library. This
+keeps the zero-dependency rule and is strictly more capable for PNG than
+the C version's loader. Pixel operations are line-by-line ports; only file
+IO differs.
+
+C semantics preserved that look like bugs and are not:
+- `MipmapPixel` selects a level from the texel footprint and then steps
+  back one (`if mip > 0 { mip-- }`), trading sharpness for aliasing. My
+  first test asserted the sharper behaviour and failed; the test was
+  wrong, not the port. It now documents the quirk.
+- `Alpha()` always returns 255; the C function ignores its arguments for
+  non-SDL images. Kept for API compatibility.
+
+### rexpaint (`console_rexpaint.c` -> `rexpaint/`): DONE
+
+Read and write REXPaint `.xp` files: gzip stream, int32 header, per-layer
+chunks, **column-major** tile data. Multi-layer load, and `Combine` which
+flattens layers using fuchsia (255,0,255) as the transparency key, as
+REXPaint itself does.
+
+`compress/gzip` replaces zlib; again, no new dependency.
+
+The column-major layout is the easy thing to get wrong, because a
+transposed writer round-trips perfectly on a square console. There is a
+non-square round-trip test specifically to catch that.
+
+### console markup (`console_printing.c` -> `console/markup.go`): DONE
+
+The legacy inline colour-control codes: five presets (`ColCtrl1..5`),
+`ForeRGB`/`BackRGB` with embedded colour bytes, and `Stop`. Plus
+`StripMarkup`/`MarkupWidth` so callers can measure a string's visible
+width, and `PrintMarkup` which honours alignment on the *visible* width;
+otherwise every control code shifts the text.
+
+Preserved quirk: RGB channel values are offset by +1 in the string,
+because a zero byte would terminate a C string. The constructors do the
+offsetting and the parser undoes it; there is a test asserting a
+round-trip through R=0.
+
+`SetColorControl` keeps the presets in package-level state, as C does.
+That is a considered choice rather than an oversight: the codes are a
+property of the *string format*, not of a console, and scoping them
+per-console would silently change the meaning of ported content.
+
+### C++ compat layer: DECLINED, not deferred
+
+Moved to "Won't port" in the register. It is a set of C++ class shims
+(`TCODConsole`, `TCODMap`, ...) whose entire purpose is to make a C
+library feel like C++. Go already has methods on types; the "port" would
+be a second, worse spelling of the API we already have, and every future
+change would need making twice. If someone is porting C++ libtcod code
+they are rewriting it anyway.
+
+### Results after session 3
+- 15 packages. `go build`, `go vet`, `gofmt`, `go test ./...` all clean.
+- Still zero third-party dependencies: the two modules that needed
+  external libraries in C (SDL_image, zlib) are covered by the standard
+  library.
+- Deferred register has no open items.
+
+---
+
+## 2026-07-28: session 4
+
+Closed the parser deviation, but not by transliterating `lex_c.c` and
+`parser_c.c`, but by first *measuring* the divergence and then fixing what
+the measurement showed. Two real bugs fell out that no amount of reading
+the C would have found.
+
+### Measuring first
+
+Built a C harness (`internal/fixtures/parser/gen_parser.c.txt`) that
+declares a schema and runs a nine-case corpus through the real libtcod
+parser, recording its listener event stream and error strings. Ran the same
+corpus through golibtcod. Results:
+
+| case | libtcod | golibtcod (before) |
+|---|---|---|
+| all value types, nested struct, flag | accepted | **identical output** |
+| C-style comments, `\"` and `\\` escapes | accepted | **identical output** |
+| `#` comment | **syntax error** | accepted |
+| undeclared property | error naming property + line | accepted silently |
+| unknown struct type | error naming type | accepted silently |
+| `cost = "not a number"` | error, substitutes 0 | stored as text |
+| unterminated struct / string | error, **keeps parsing** | aborts |
+
+Two of the seven agreed exactly. The rest is documented in the package doc
+comment now, with the corpus and C reference output committed so the claims
+are checkable rather than asserted.
+
+**A documentation error surfaced:** the package claimed its accepted syntax
+matched libtcod. It does not: `#` comments are a golibtcod extension;
+libtcod's lexer knows only `//` and `/* */`. golibtcod accepts a strict
+superset, so a `.cfg` written for golibtcod using `#` will not load in C
+libtcod. Kept the extension (it is ubiquitous in config formats and we own
+our files) but it is now labelled as an extension in the package doc, not
+sold as compatibility. Note that downstream example `.cfg` files use `#`.
+
+### The schema layer (`parser/schema.go`)
+
+libtcod's parser is schema-first: declare struct types and property types,
+then it validates while parsing. golibtcod parses first and validates second:
+
+    s := parser.NewSchema()
+    s.Declare("item_type").
+        Prop("cost", parser.TypeInt, true).
+        Prop("col", parser.TypeColor, false).
+        Flag("abstract").
+        Child("sublist")
+
+    structs, err := parser.Parse(src)
+    if errs := parser.Validate(structs, s); errs != nil { ... }
+
+Checks: unknown struct types, undeclared properties, undeclared flags,
+missing mandatory properties, illegal nesting, and value types (bool, char,
+int, float, string, color, dice, list). Typed getters (`Char`, `Color`,
+`Dice`) sit alongside the existing `Int`/`Float`/`Bool`. `Dice` delegates
+to `rng.ParseDice`, so the parser and the roller cannot disagree about what
+`3d6+2` means.
+
+Three deliberate divergences, all pinned by tests:
+- **Every** error is reported, in source order, not just the first.
+  libtcod stops at its first fatal error. For a config file the full list
+  is more useful.
+- A type mismatch keeps the offending text in the message
+  (`expected an integer, got "not a number"`); libtcod substitutes zero.
+- Validation is optional: reading a schema-less file stays legitimate,
+  which is the whole reason the layer is separate.
+
+Structs and values now carry `Line`, and structs a `PropOrder`, so errors
+can name the line the way libtcod does. Verified: the undeclared-property
+case reports **line 3**, exactly as C does.
+
+### Two parser bugs the tests found
+
+Writing the schema tests immediately broke the parser, in a way the
+existing tests could not have caught because they all put one property per
+line:
+
+    item_type "x" { cost = 1 legendary }          // flag swallowed
+    item_type "x" { cost = 1 sublist { ... } }    // nested struct swallowed
+
+`bareValue` read to end of line, so the value became `"1 legendary"`.
+libtcod's lexer is **token-based**: an unquoted value there is exactly one
+token, and text with spaces must be quoted. `bareValue` now reads a single
+token, which fixes both cases and moves the implementation closer to C.
+
+Regression check that mattered: the namegen fixture suite still reproduces
+all **208 names** generated by the C implementation from the same `.cfg`,
+so the lexer change is compatible with real content.
+
+### Results after session 4
+- 15 packages, all building, vetting and testing clean.
+- The parser deviation is now *characterised and bounded* rather than
+  vague: agreement is measured, differences are documented in the package
+  doc, and the C harness is committed for re-checking.
+- Deferred register has no open items.
+
+---
+
+## 2026-07-30: session 5
+
+External code review against the C sources, then fixes. No new modules. The
+headline: the fixture suite validates *algorithm output on well-formed
+inputs* thoroughly and *argument validation* not at all, and every defect
+found lived in that gap. Full write-up in `REVIEW_FINDINGS.md`.
+
+Regression tests were added for every fix (`*/regression_test.go`), and
+`present/pngout` went from no tests at all to 95.9% coverage.
+
+**The fixture counts are unchanged after all of this**: 1,664 rng values,
+7,264 fov cells, complete A*/Dijkstra dumps, 3 BSP trees, 208 names, noise
+341/420 bit-exact, heightmap 1333/1388. Nothing below cost any fidelity.
+
+### 1. Dijkstra queue overflow, the one that mattered
+
+`(*Dijkstra).Compute` could drive the pending-queue insertion one slot past
+the end of `nodes[]`. Measured before the fix: **71 of 500** random 8x8 maps
+panicked with every cell walkable and no adversarial input, i.e. ~14% of
+ordinary cost-function use. After: 0 of 2000.
+
+Why the fixtures missed it: `gen.c.txt` only exercises `TCOD_dijkstra_new`,
+the *map-based* constructor, where every cost is uniformly 0 or 1. Verified
+that map-based is 0/500 while cost-function is 71/500, so the bug sits
+precisely in the untested constructor.
+
+This is **not** simply a faithful reproduction of an upstream bug, which is
+how it first looked. C has the same unbounded `nodes[j + 1]` write, but
+`TCOD_dijkstra_new_using_function` (`path_c.c:473-474`) deliberately
+over-allocates **4x** while leaving `nodes_max` at `w*h`; the map-based
+constructor gets no such padding. golibtcod allocated exactly `n` for both, so
+the port had dropped a mitigation upstream put there on purpose. Fixed by
+clamping the queue walk to capacity rather than restoring the slack, since
+reproducing a heap overflow is not a fidelity win. The clamp only engages
+past the point where C corrupts memory, which is why the fixtures are
+untouched.
+
+### 2. rexpaint resource exhaustion
+
+`ReadLayers` bounded `LayerCount` but not `Width`/`Height`, and
+`console.New` allocates before any tile data is read. A ~40 byte crafted
+file claiming 40000x40000 took **26 seconds**; 65536x65536 (~64 GB) had to
+be killed after 100 seconds. Added `maxLayerCells` (1<<24, e.g. 4096x4096);
+those inputs are now rejected in microseconds and plausible sizes still
+round-trip, non-square included.
+
+### 3. `fov.Permissive(p)` silently ran a different algorithm
+
+Unchecked `Permissive0 + Algorithm(p)` meant out-of-range grades aliased
+neighbouring members: `Permissive(-1)` ran recursive shadowcasting and
+returned a **nil error**, producing output byte-identical to `Shadow`.
+C validates the range. Now returns `AlgorithmInvalid`, which `ComputeFov`
+rejects.
+
+### 4. pngout rendered the sample's A* route identically to its walls
+
+The 8x8 font had 2 of 26 lowercase letters, no `'*'`, and fell back to
+`'#'` for unmapped runes, which is also what `cmd/sample` draws walls with.
+So the route (`'*'`) and the walls rendered as the same glyph: verified
+byte-identical PNG output. Since the README points people at
+`go run ./cmd/sample`, this was the most user-visible defect in the tree.
+
+Added the full lowercase alphabet, `'*'`, and assorted punctuation, and
+replaced the fallback with a private `missingGlyph` sentinel drawn as a
+hollow box, so a missing glyph can never again masquerade as content.
+
+### 5. Dice parser
+
+`atoiPrefix` claimed "atoi semantics" but only parsed leading digits. C's
+`atoi` also skips whitespace, takes a sign, and returns 32 bits. So `" 3d6"`
+(one stray space in a config file) silently rolled **0**, and `"-2d6"` gave
+`Rolls=0`. Now matches C exactly, including `"99999999999d6"` truncating to
+`1215752191`.
+
+That truncation is C-faithful but still 1.2 billion iterations, and a Go
+caller should not be able to hang a process from a config string. `Roll`
+now clamps at `MaxRolls` (1<<20): the same input goes from an indefinite
+hang to 14ms, and ordinary dice are untouched. Documented as a deliberate
+divergence at the constant.
+
+Note `parser.Value.Dice()` already guarded the whitespace and negative
+cases via `TrimSpace` and its `Rolls <= 0` check; the huge-count case was
+the one that reached callers through the validated path.
+
+### 6. Panics on degenerate input
+
+- `MidPointDisplacement` on a 1x1 map indexed `Values[-1]` (`initSz` is
+  `min(W,H)-1`). Now requires a 2x2 grid, which is the smallest size with a
+  midpoint at all.
+- `AddVoronoi` clamped `nbCoef` against `nbPoints` but not `len(coef)`, so a
+  short coefficient slice ran off the end. Now clamped against both.
+- `fov.Map` accessors dereferenced a nil receiver, and `NewMap` signals
+  failure by *returning nil*, so `NewMap(0,10).Width()` panicked. They now
+  return zero values as `TCOD_map_get_width` and friends do.
+- `AStar.Get`/`Dijkstra.Get` indexed `path[-1]` on an empty path. `Compute`
+  succeeds with `Size()==0` when origin equals destination, so `Get(0)` on a
+  perfectly valid path object crashed. Out-of-range indices now return the
+  origin and `(-1,-1)` respectively.
+
+### 7. `SetCharBackground` default-flag test
+
+Tested `flag&0xff == BkgndDefault`; C compares the **whole** flag. An
+alpha-carrying flag whose low byte happened to be 13 substituted the
+console's flag instead of falling through to the switch default. Latent
+rather than live (no public constructor produces such a value: `AddAlpha`
+and `Alpha` yield low bytes 9 and 12), but now matches C.
+
+### Left alone, deliberately
+
+- **`generateMip` on non-power-of-two images.** The added bounds guard
+  excludes skipped samples from `count`, so averages differ slightly from C,
+  which reads out of bounds there. The guard is right; the divergence is
+  noted in `REVIEW_FINDINGS.md` rather than "fixed" back to a buffer overread.
+- **`NewUsingMap(m, -1.0)` hangs forever.** Faithful to C, which has the
+  same unbounded loop. A negative diagonal cost is meaningless input.
+- **`BSP.Level` is `int` where C is `uint8_t`.** Only observable past tree
+  depth 255.
+
+### `present/ebiten` declined, not deferred
+
+It had sat in the register's "Blocked" table since session 1, on the reason
+that the sandbox could not reach the Go module proxy. That framing was
+wrong, and the register's own maintenance rule caught it: an item that has
+outlived its trigger is declined, not deferred.
+
+The real reason is simpler and does not depend on the environment. Any
+engine binding is a third-party dependency, and "no cgo, no third-party
+dependencies" is the first thing the README claims. A graphical backend
+would break that rule for something this library does not need: the
+presenter contract is already implemented twice (`pngout`, `term`), and a
+consumer that wants a window implements the interface against whatever
+engine it already uses. Rendering is the consumer's concern.
+
+Moved to "Won't port: replaced by design", alongside the SDL renderer it
+would have replaced. The register's "Blocked" table is now empty, which
+means the port has no open items at all.
+
+### Results after session 5
+
+- `go build`, `go vet`, `gofmt`, `go test ./...` all clean.
+- Coverage up across every touched package; `present/pngout` 0% to 95.9%.
+- Fixture suite byte-identical to session 4: no fidelity regression.
+- Deferred register has no open items.
+
+---
+
+# Deferred Register
+
+**This is the canonical list.** Deferred items were previously scattered
+across session notes, which meant the session-1 TODO went stale the moment
+session 2 cleared most of it and a reader had to reconstruct the real state
+from three places. Everything outstanding lives here now.
+
+**Maintenance rule:** anything deferred gets a row here *in the same commit
+that defers it*, with a reason and a trigger. When an item is done, write it
+up in the session entry and delete its row. If a row has been here for three
+sessions without its trigger firing, it probably isn't deferred: it's
+declined, and should be moved to "Won't port" with the reasoning.
+
+## Blocked
+
+**Empty.**
+
+## Deliberately not started
+
+**Empty.** Cleared in session 3: `image` (+ mipmaps + subcell 2x
+rendering), `rexpaint`, and the legacy colour markup are all built and
+tested. The C++ compat layer moved to "Won't port" below.
+
+## Omitted inside completed modules
+
+| item | why |
+|---|---|
+| `heightmap.islandify` | A no-op in current upstream, pending removal. Porting a no-op would be porting a bug. |
+| `heightmap.heat_erosion` | `#if 0` in the C source: dead code upstream. Reinstating it means writing thermal erosion from scratch, not porting. |
+
+Both are noted in `heightmap/heightmap.go` at the point they'd sit.
+
+## Won't port: replaced by design
+
+Not deferrals. These are architectural substitutions, and listing them here
+stops a future session "finishing the port" by adding them back.
+
+| libtcod | golibtcod | why |
+|---|---|---|
+| SDL renderer, tileset, context, input | the presenter interface (`present/*`) | Keeps the core engine-free and headless-testable: the property that makes batch worldgen, replay, CI rendering and the terminal build possible |
+| global RNG | explicit `*rng.Random` | A process-global generator can't support a seed economy with independent sim and audio streams |
+| global namegen registry | explicit `*namegen.Registry` | Same reason; also lets multiple syllable sets coexist |
+| `TCOD_list`, `TCOD_tree` | Go slices, maps, struct pointers | Hand-rolled C containers with no behaviour to preserve |
+| a graphical backend (Ebitengine, SDL bindings, &c.) | the presenter interface (`present/*`) | Any engine binding is a third-party dependency, which the zero-dependency rule excludes. The contract is proven twice over by `pngout` and `term`; a consumer that wants a window implements the interface against whatever engine it already uses. Rendering is that consumer's concern, not this library's. |
+| C++ compat layer (`TCODConsole` &c.) | the Go API itself | Class shims exist to make a C library feel like C++. Go already has methods on types, so this would be a second, worse spelling of an API we have: maintained twice, forever. Declined session 3. |
+
+## Deviations from faithful porting
+
+One entry, flagged because "faithful port" is the project's whole premise.
+
+| module | deviation | why |
+|---|---|---|
+| `parser` | **Clean-room, not a line-by-line port.** Divergences measured against the C implementation in session 4 and documented in the package doc; corpus and C harness in `internal/fixtures/parser`. Summary: `#` comments are a golibtcod extension (libtcod rejects them); validation is a separate optional layer rather than schema-first parsing; all errors are reported rather than the first; a type mismatch keeps the offending text instead of substituting zero; golibtcod aborts on a malformed file where libtcod recovers. | `lex_c.c` + `parser_c.c` are ~2,600 lines built on a global lexer and a listener-callback ABI, with no numerical behaviour to preserve. A transliteration would be both unpleasant and un-Go-like. |
+| `image` | File IO uses stdlib `image/png` and `image/jpeg` instead of SDL_image. Pixel operations are line-by-line ports. | SDL is not a dependency, and the stdlib PNG decoder is better than the one being replaced. |
+| `rexpaint` | `compress/gzip` instead of zlib. Format bit-identical. | Same reason: no external dependency. |
+
+Everything else in the tree is a faithful port validated against fixtures
+generated by the actual C code. Preserved C quirks are listed under session
+1's fidelity notes; they are intentional and must not be "fixed".

@@ -1,0 +1,103 @@
+/* gen_parser.c: dump libtcod's parser behaviour on a corpus of .cfg files.
+ *
+ * libtcod's parser is SCHEMA-FIRST: you declare struct types and property
+ * types up front, then run. This harness declares a schema matching
+ * case1.cfg and feeds every case through it, recording the listener event
+ * stream and any errors, which is exactly what we need to compare against
+ * golibtcod's schema-less parser.
+ */
+#include <stdio.h>
+#include <string.h>
+
+#include "color.h"
+#include "mersenne.h"
+#include "parser.h"
+
+static FILE* out;
+static int error_count;
+
+static const char* type_name(TCOD_value_type_t t) {
+  switch (t & 0xff) {
+    case TCOD_TYPE_BOOL: return "bool";
+    case TCOD_TYPE_CHAR: return "char";
+    case TCOD_TYPE_INT: return "int";
+    case TCOD_TYPE_FLOAT: return "float";
+    case TCOD_TYPE_STRING: return "string";
+    case TCOD_TYPE_COLOR: return "color";
+    case TCOD_TYPE_DICE: return "dice";
+    default: return "other";
+  }
+}
+
+static bool on_struct(TCOD_ParserStruct* str, const char* name) {
+  fprintf(out, "  struct %s name=%s\n", TCOD_struct_get_name(str), name ? name : "(none)");
+  return true;
+}
+
+static bool on_flag(const char* name) {
+  fprintf(out, "  flag %s\n", name);
+  return true;
+}
+
+static bool on_property(const char* propname, TCOD_value_type_t type, TCOD_value_t value) {
+  fprintf(out, "  prop %s : %s = ", propname, type_name(type));
+  switch (type & 0xff) {
+    case TCOD_TYPE_BOOL: fprintf(out, "%s", value.b ? "true" : "false"); break;
+    case TCOD_TYPE_CHAR: fprintf(out, "'%c'", value.c); break;
+    case TCOD_TYPE_INT: fprintf(out, "%d", value.i); break;
+    case TCOD_TYPE_FLOAT: fprintf(out, "%.6g", value.f); break;
+    case TCOD_TYPE_STRING: fprintf(out, "\"%s\"", value.s ? value.s : ""); break;
+    case TCOD_TYPE_COLOR: fprintf(out, "%d,%d,%d", value.col.r, value.col.g, value.col.b); break;
+    case TCOD_TYPE_DICE:
+      fprintf(out, "%dd%d+%g x%g", value.dice.nb_rolls, value.dice.nb_faces, value.dice.addsub,
+              value.dice.multiplier);
+      break;
+    default: fprintf(out, "?"); break;
+  }
+  fprintf(out, "\n");
+  return true;
+}
+
+static bool on_end_struct(TCOD_ParserStruct* str, const char* name) {
+  fprintf(out, "  end %s\n", TCOD_struct_get_name(str));
+  return true;
+}
+
+static void on_error(const char* msg) {
+  ++error_count;
+  fprintf(out, "  ERROR %s\n", msg);
+}
+
+static TCOD_parser_listener_t listener = {on_struct, on_flag, on_property, on_end_struct, on_error};
+
+static void run_case(const char* path) {
+  fprintf(out, "== %s\n", path);
+  error_count = 0;
+
+  TCOD_Parser* parser = TCOD_parser_new();
+  TCOD_ParserStruct* sub = TCOD_parser_new_struct(parser, "sublist");
+  TCOD_struct_add_property(sub, "bonus", TCOD_TYPE_INT, false);
+
+  TCOD_ParserStruct* item = TCOD_parser_new_struct(parser, "item_type");
+  TCOD_struct_add_property(item, "cost", TCOD_TYPE_INT, true);
+  TCOD_struct_add_property(item, "weight", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(item, "deal_damage", TCOD_TYPE_BOOL, false);
+  TCOD_struct_add_property(item, "damages", TCOD_TYPE_DICE, false);
+  TCOD_struct_add_property(item, "col", TCOD_TYPE_COLOR, false);
+  TCOD_struct_add_property(item, "initial", TCOD_TYPE_CHAR, false);
+  TCOD_struct_add_property(item, "description", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_flag(item, "abstract");
+  TCOD_struct_add_structure(item, sub);
+
+  TCOD_parser_run(parser, path, &listener);
+  fprintf(out, "  -> errors=%d\n", error_count);
+  TCOD_parser_delete(parser);
+}
+
+int main(int argc, char** argv) {
+  out = fopen("fixtures_parser.txt", "w");
+  if (!out) return 1;
+  for (int i = 1; i < argc; ++i) run_case(argv[i]);
+  fclose(out);
+  return 0;
+}

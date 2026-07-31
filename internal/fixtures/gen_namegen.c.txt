@@ -1,0 +1,21 @@
+#include <stdio.h>
+#include "mersenne.h"
+#include "namegen.h"
+
+int main(void) {
+  FILE* out = fopen("fixtures_namegen.txt", "w");
+  const unsigned seeds[] = {0x5EEDu, 12345u};
+  for (unsigned s = 0; s < 2; s++) {
+    TCOD_Random* r = TCOD_random_new_from_seed(TCOD_RNG_CMWC, seeds[s]);
+    TCOD_namegen_parse(s == 0 ? "mkname.cfg" : "mkname2.cfg", r);
+    fprintf(out, "== namegen generate %u\n", seeds[s]);
+    for (int i = 0; i < 40; i++) fprintf(out, "%s\n", TCOD_namegen_generate(s == 0 ? "syllables" : "syllables2", false));
+    fprintf(out, "== namegen custom %u\n", seeds[s]);
+    for (int i = 0; i < 40; i++) fprintf(out, "%s\n", TCOD_namegen_generate_custom(s == 0 ? "syllables" : "syllables2", "$s$m$e", false));
+    fprintf(out, "== namegen wildcards %u\n", seeds[s]);
+    for (int i = 0; i < 24; i++) fprintf(out, "%s\n", TCOD_namegen_generate_custom(s == 0 ? "syllables" : "syllables2", "$v$c$?_$60P$s$e", false));
+    TCOD_random_delete(r);
+  }
+  fclose(out);
+  return 0;
+}

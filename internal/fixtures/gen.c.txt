@@ -1,0 +1,296 @@
+/* gen.c: golden fixture generator for golibtcod.
+ * Links against the actual libtcod C objects and dumps deterministic
+ * outputs for the Go port to compare against. Plain text, one section
+ * per fixture: "== NAME" then payload lines.
+ */
+#include <stdio.h>
+#include <string.h>
+
+#include "bresenham.h"
+#include "bsp.h"
+#include "fov.h"
+#include "heightmap.h"
+#include "mersenne.h"
+#include "noise.h"
+#include "path.h"
+
+/* Older short-name getters exist in mersenne_c.c but current mersenne.h
+ * only declares the distribution-aware names; prototype them explicitly
+ * so varargs promotion works (an implicit int decl silently corrupted
+ * the float fixtures on the first run, logged). */
+float TCOD_random_get_f(TCOD_Random* rng, float min, float max);
+int TCOD_random_get_i(TCOD_Random* rng, int min, int max);
+
+static FILE* out;
+
+/* ---------- rng ---------- */
+static void dump_rng(void) {
+  const uint32_t seeds[] = {5489u, 0xDEADBEEFu, 1u, 42424242u};
+  for (int a = 0; a < 2; a++) {
+    TCOD_random_algo_t algo = a == 0 ? TCOD_RNG_MT : TCOD_RNG_CMWC;
+    for (unsigned s = 0; s < 4; s++) {
+      TCOD_Random* r = TCOD_random_new_from_seed(algo, seeds[s]);
+      fprintf(out, "== rng_u32 %s %u\n", a == 0 ? "MT" : "CMWC", seeds[s]);
+      /* no public u32; use get_i over the full non-negative range loses bits.
+         Instead dump get_i(0, 2^31-2) which is u32 % (2^31-1): still a strict
+         function of the raw stream, and get_f/get_d for float scaling. */
+      for (int i = 0; i < 64; i++) fprintf(out, "%d\n", TCOD_random_get_i(r, 0, 2147483646));
+      fprintf(out, "== rng_f %s %u\n", a == 0 ? "MT" : "CMWC", seeds[s]);
+      for (int i = 0; i < 32; i++) fprintf(out, "%.9g\n", TCOD_random_get_f(r, 0.0f, 1.0f));
+      fprintf(out, "== rng_i_range %s %u\n", a == 0 ? "MT" : "CMWC", seeds[s]);
+      for (int i = 0; i < 32; i++) fprintf(out, "%d\n", TCOD_random_get_i(r, -17, 1234));
+      fprintf(out, "== rng_gauss %s %u\n", a == 0 ? "MT" : "CMWC", seeds[s]);
+      TCOD_random_set_distribution(r, TCOD_DISTRIBUTION_GAUSSIAN_RANGE);
+      for (int i = 0; i < 32; i++) fprintf(out, "%d\n", TCOD_random_get_int(r, -50, 50));
+      TCOD_random_set_distribution(r, TCOD_DISTRIBUTION_GAUSSIAN_RANGE_INVERSE);
+      fprintf(out, "== rng_gauss_inv %s %u\n", a == 0 ? "MT" : "CMWC", seeds[s]);
+      for (int i = 0; i < 32; i++) fprintf(out, "%d\n", TCOD_random_get_int(r, -50, 50));
+      TCOD_random_set_distribution(r, TCOD_DISTRIBUTION_LINEAR);
+      fprintf(out, "== rng_dice %s %u\n", a == 0 ? "MT" : "CMWC", seeds[s]);
+      for (int i = 0; i < 16; i++) fprintf(out, "%d\n", TCOD_random_dice_roll_s(r, "3d6+2"));
+      TCOD_random_delete(r);
+    }
+  }
+}
+
+/* ---------- bresenham ---------- */
+static int bres_cb_count;
+static bool bres_cb(int x, int y) {
+  fprintf(out, "%d %d\n", x, y);
+  bres_cb_count++;
+  return true;
+}
+static void dump_bresenham(void) {
+  const int lines[][4] = {
+      {0, 0, 7, 3},  {7, 3, 0, 0},  {2, 2, 2, 9},   {5, 5, -3, 4},
+      {0, 0, 0, 0},  {10, 2, 3, 8}, {-4, -2, 6, 1},
+  };
+  for (unsigned i = 0; i < sizeof(lines) / sizeof(lines[0]); i++) {
+    fprintf(out, "== bres %d %d %d %d\n", lines[i][0], lines[i][1], lines[i][2], lines[i][3]);
+    bres_cb_count = 0;
+    TCOD_line(lines[i][0], lines[i][1], lines[i][2], lines[i][3], bres_cb);
+  }
+}
+
+/* ---------- fov ---------- */
+static const char* map1[] = {
+    "................",
+    "....##......#...",
+    "....##...#......",
+    ".........#......",
+    "..####..........",
+    "..#..#....###...",
+    "..#..#....#.#...",
+    "..#.......###...",
+    "..####..........",
+    ".......#........",
+    ".......#........",
+    "................",
+};
+static const char* map2[] = {
+    "##########",
+    "#........#",
+    "#..#..#..#",
+    "#........#",
+    "#..#..#..#",
+    "#........#",
+    "##########",
+};
+
+static TCOD_Map* build_map(const char** rows, int h) {
+  int w = (int)strlen(rows[0]);
+  TCOD_Map* m = TCOD_map_new(w, h);
+  for (int y = 0; y < h; y++)
+    for (int x = 0; x < w; x++) TCOD_map_set_properties(m, x, y, rows[y][x] != '#', rows[y][x] != '#');
+  return m;
+}
+
+static void dump_fov_one(TCOD_Map* m, const char* name, int px, int py, int radius, bool light_walls) {
+  static const int algos[] = {
+      FOV_BASIC, FOV_DIAMOND, FOV_SHADOW, FOV_PERMISSIVE_0, FOV_PERMISSIVE_4,
+      FOV_PERMISSIVE_8, FOV_RESTRICTIVE, FOV_SYMMETRIC_SHADOWCAST,
+  };
+  static const char* algo_names[] = {
+      "BASIC", "DIAMOND", "SHADOW", "PERM0", "PERM4", "PERM8", "RESTRICTIVE", "SYMMETRIC",
+  };
+  for (unsigned a = 0; a < sizeof(algos) / sizeof(algos[0]); a++) {
+    TCOD_map_compute_fov(m, px, py, radius, light_walls, algos[a]);
+    fprintf(out, "== fov %s %s %d %d %d %d\n", name, algo_names[a], px, py, radius, (int)light_walls);
+    for (int y = 0; y < TCOD_map_get_height(m); y++) {
+      for (int x = 0; x < TCOD_map_get_width(m); x++)
+        fputc(TCOD_map_is_in_fov(m, x, y) ? '1' : '0', out);
+      fputc('\n', out);
+    }
+  }
+}
+
+static void dump_fov(void) {
+  TCOD_Map* m1 = build_map(map1, 12);
+  TCOD_Map* m2 = build_map(map2, 7);
+  dump_fov_one(m1, "map1", 7, 6, 0, true);
+  dump_fov_one(m1, "map1", 7, 6, 6, true);
+  dump_fov_one(m1, "map1", 7, 6, 6, false);
+  dump_fov_one(m1, "map1", 0, 0, 0, true);
+  dump_fov_one(m2, "map2", 4, 3, 0, true);
+  dump_fov_one(m2, "map2", 1, 1, 4, false);
+  TCOD_map_delete(m1);
+  TCOD_map_delete(m2);
+}
+
+/* ---------- path ---------- */
+static const char* pmap[] = {
+    "####################",
+    "#........#.........#",
+    "#........#.........#",
+    "#...##...#....#....#",
+    "#...##...#....#....#",
+    "#...##........#....#",
+    "#...#####..####....#",
+    "#..................#",
+    "####################",
+};
+
+static float pcost(int xf, int yf, int xt, int yt, void* ud) {
+  (void)ud;
+  (void)xf;
+  (void)yf;
+  if (pmap[yt][xt] == '#') return 0.0f;
+  if (xt >= 10) return 3.0f; /* right half is expensive */
+  return 1.0f;
+}
+
+static void dump_path(void) {
+  TCOD_Map* m = build_map(pmap, 9);
+  for (int diag = 0; diag < 2; diag++) {
+    float dc = diag ? 1.41f : 0.0f;
+    TCOD_path_t p = TCOD_path_new_using_map(m, dc);
+    bool ok = TCOD_path_compute(p, 1, 1, 18, 7);
+    fprintf(out, "== astar map %g %d\n", dc, (int)ok);
+    for (int i = 0; i < TCOD_path_size(p); i++) {
+      int x, y;
+      TCOD_path_get(p, i, &x, &y);
+      fprintf(out, "%d %d\n", x, y);
+    }
+    TCOD_path_delete(p);
+  }
+  TCOD_path_t p = TCOD_path_new_using_function(20, 9, pcost, NULL, 1.41f);
+  bool ok = TCOD_path_compute(p, 1, 1, 18, 7);
+  fprintf(out, "== astar func 1.41 %d\n", (int)ok);
+  for (int i = 0; i < TCOD_path_size(p); i++) {
+    int x, y;
+    TCOD_path_get(p, i, &x, &y);
+    fprintf(out, "%d %d\n", x, y);
+  }
+  TCOD_path_delete(p);
+
+  TCOD_dijkstra_t d = TCOD_dijkstra_new(m, 1.41f);
+  TCOD_dijkstra_compute(d, 1, 1);
+  fprintf(out, "== dijkstra dist\n");
+  for (int y = 0; y < 9; y++) {
+    for (int x = 0; x < 20; x++) fprintf(out, "%.2f ", TCOD_dijkstra_get_distance(d, x, y));
+    fputc('\n', out);
+  }
+  TCOD_dijkstra_path_set(d, 18, 7);
+  fprintf(out, "== dijkstra path\n");
+  while (!TCOD_dijkstra_is_empty(d)) {
+    int x, y;
+    TCOD_dijkstra_path_walk(d, &x, &y);
+    fprintf(out, "%d %d\n", x, y);
+  }
+  TCOD_dijkstra_delete(d);
+  TCOD_map_delete(m);
+}
+
+/* ---------- bsp ---------- */
+static bool bsp_cb(TCOD_bsp_t* node, void* ud) {
+  (void)ud;
+  fprintf(out, "%d %d %d %d %d %d %d\n", node->x, node->y, node->w, node->h, node->level, (int)node->horizontal,
+          node->position);
+  return true;
+}
+static void dump_bsp(void) {
+  const uint32_t seeds[] = {0xDEADBEEFu, 7u, 123456u};
+  for (unsigned s = 0; s < 3; s++) {
+    TCOD_Random* r = TCOD_random_new_from_seed(TCOD_RNG_CMWC, seeds[s]);
+    TCOD_bsp_t* root = TCOD_bsp_new_with_size(0, 0, 80, 50);
+    TCOD_bsp_split_recursive(root, r, 5, 6, 6, 1.5f, 1.5f);
+    fprintf(out, "== bsp %u\n", seeds[s]);
+    TCOD_bsp_traverse_pre_order(root, bsp_cb, NULL);
+    TCOD_bsp_delete(root);
+    TCOD_random_delete(r);
+  }
+}
+
+/* ---------- noise ---------- */
+static void dump_noise(void) {
+  for (int ndim = 1; ndim <= 4; ndim++) {
+    TCOD_Random* r = TCOD_random_new_from_seed(TCOD_RNG_CMWC, 0x5EEDu);
+    TCOD_noise_t n = TCOD_noise_new(ndim, TCOD_NOISE_DEFAULT_HURST, TCOD_NOISE_DEFAULT_LACUNARITY, r);
+    fprintf(out, "== noise %d\n", ndim);
+    for (int i = 0; i < 24; i++) {
+      float f[4] = {i * 0.173f - 2.0f, i * 0.117f + 0.5f, i * 0.071f - 1.0f, i * 0.045f};
+      float perlin = TCOD_noise_get_ex(n, f, TCOD_NOISE_PERLIN);
+      float simplex = TCOD_noise_get_ex(n, f, TCOD_NOISE_SIMPLEX);
+      float fbm = TCOD_noise_get_fbm_ex(n, f, 4.5f, TCOD_NOISE_SIMPLEX);
+      float turb = TCOD_noise_get_turbulence_ex(n, f, 3.25f, TCOD_NOISE_PERLIN);
+      fprintf(out, "%.9g %.9g %.9g %.9g\n", perlin, simplex, fbm, turb);
+    }
+    if (ndim <= 3) {
+      fprintf(out, "== noise_wavelet %d\n", ndim);
+      for (int i = 0; i < 12; i++) {
+        float f[4] = {i * 0.211f, i * 0.137f, i * 0.093f, 0};
+        fprintf(out, "%.9g\n", TCOD_noise_get_ex(n, f, TCOD_NOISE_WAVELET));
+      }
+    }
+    TCOD_noise_delete(n);
+    TCOD_random_delete(r);
+  }
+}
+
+/* ---------- heightmap ---------- */
+static void dump_heightmap(void) {
+  TCOD_Random* r = TCOD_random_new_from_seed(TCOD_RNG_CMWC, 0xBEEFu);
+  TCOD_noise_t nz = TCOD_noise_new(2, TCOD_NOISE_DEFAULT_HURST, TCOD_NOISE_DEFAULT_LACUNARITY,
+                                   TCOD_random_new_from_seed(TCOD_RNG_CMWC, 0xBEEFu));
+  TCOD_heightmap_t* hm = TCOD_heightmap_new(17, 17);
+  TCOD_heightmap_add_hill(hm, 8.0f, 8.0f, 6.0f, 1.0f);
+  TCOD_heightmap_add_hill(hm, 3.5f, 4.5f, 3.0f, 0.5f);
+  TCOD_heightmap_dig_hill(hm, 12.0f, 12.0f, 4.0f, -0.5f);
+  TCOD_heightmap_add_fbm(hm, nz, 3.0f, 3.0f, 0.0f, 0.0f, 4.0f, 0.0f, 0.5f);
+  TCOD_heightmap_rain_erosion(hm, 200, 0.05f, 0.05f, r);
+  TCOD_heightmap_normalize(hm, 0.0f, 1.0f);
+  fprintf(out, "== heightmap chain\n");
+  for (int y = 0; y < 17; y++) {
+    for (int x = 0; x < 17; x++) fprintf(out, "%.9g ", TCOD_heightmap_get_value(hm, x, y));
+    fputc('\n', out);
+  }
+  fprintf(out, "== heightmap interp\n");
+  for (int i = 0; i < 10; i++)
+    fprintf(out, "%.9g\n", TCOD_heightmap_get_interpolated_value(hm, i * 1.55f, i * 1.15f));
+  TCOD_heightmap_delete(hm);
+
+  TCOD_heightmap_t* mpd = TCOD_heightmap_new(33, 33);
+  TCOD_Random* r2 = TCOD_random_new_from_seed(TCOD_RNG_MT, 11u);
+  TCOD_heightmap_mid_point_displacement(mpd, r2, 0.5f);
+  fprintf(out, "== heightmap mpd\n");
+  for (int y = 0; y < 33; y++) {
+    for (int x = 0; x < 33; x++) fprintf(out, "%.9g ", TCOD_heightmap_get_value(mpd, x, y));
+    fputc('\n', out);
+  }
+  TCOD_heightmap_delete(mpd);
+}
+
+int main(void) {
+  out = fopen("fixtures.txt", "w");
+  if (!out) return 1;
+  dump_rng();
+  dump_bresenham();
+  dump_fov();
+  dump_path();
+  dump_bsp();
+  dump_noise();
+  dump_heightmap();
+  fclose(out);
+  fprintf(stderr, "fixtures written\n");
+  return 0;
+}
