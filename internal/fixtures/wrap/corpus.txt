@@ -1,0 +1,200 @@
+13	10	1	world world supercalifragilistic test dog co-op three
+1	10	1	   fox naïve the
+20	3	2	
+16	2	2	the three three ellipsis… dog -lead naïve one fox three world quick a world dog brown
+23	2	2	
+2	6	1	x fox em—dash ellipsis… one x hello x world co-op test ellipsis… em—dash em—dash three
+10	7	0	   naïve hello jumps ellipsis… well-known naïve ellipsis… one ellipsis… x a dog one supercalifragilistic two em—dash    
+19	7	2	test\nquick the world -lead the co-op fox x ellipsis… wrap dash- brown wrap
+9	2	1	   to a brown supercalifragilistic jumps quick hello one dash- supercalifragilistic multi--dash dog
+3	2	2	em—dash    
+7	8	0	   ellipsis… test one well-known brown
+6	8	1	   dash- ellipsis… em—dash brown to dog x em—dash dog one x well-known    
+9	5	2	x the world one supercalifragilistic a dash- dog brown three hello one world -lead three naïve
+25	10	1	   co-op supercalifragilistic -lead co-op quick quick multi--dash the multi--dash co-op test supercalifragilistic
+25	8	1	multi--dash one to    
+10	8	2	supercalifragilistic\nbrown two world a ellipsis… -lead jumps ellipsis… dash- one    
+19	1	0	-lead\nem—dash test ellipsis… two the dog dash- em—dash dash-
+20	8	0	
+3	10	0	jumps\nnaïve jumps a test
+12	5	2	x world em—dash fox co-op
+25	3	0	\nem—dash wrap three
+17	2	0	lazy multi--dash supercalifragilistic naïve
+5	1	0	two
+22	9	2	-lead dash-
+21	8	1	lazy to ellipsis… three supercalifragilistic dash- lazy naïve well-known
+1	3	0	hello multi--dash -lead test lazy naïve test supercalifragilistic
+4	1	1	
+5	2	1	
+15	4	0	
+13	5	0	\nco-op fox brown one
+26	10	2	the\nthe supercalifragilistic test well-known -lead test lazy quick brown jumps jumps x wrap well-known
+1	7	2	   lazy naïve well-known a ellipsis… a -lead em—dash three to supercalifragilistic to    
+3	8	0	hello world to co-op hello the fox dash- -lead
+24	6	0	hello hello supercalifragilistic the world x the to -lead jumps test
+22	2	0	the test lazy naïve hello test the fox brown multi--dash one world x brown supercalifragilistic world
+16	4	2	three co-op world the lazy lazy two
+18	2	0	dog -lead multi--dash jumps well-known a x co-op supercalifragilistic naïve ellipsis… naïve world
+4	3	1	em—dash one fox multi--dash
+13	3	2	dog hello the dog dash- lazy one dash- -lead naïve fox
+11	1	2	dog co-op naïve co-op brown the
+15	8	1	world -lead    
+3	3	0	the to two fox test x two em—dash wrap    
+18	4	1	\nx jumps quick quick wrap naïve lazy brown three two three dash- world dog naïve naïve
+17	4	1	   \nlazy ellipsis…
+3	9	1	the    
+13	8	2	three naïve em—dash the
+13	2	1	world
+20	10	0	\n-lead ellipsis… x the jumps lazy lazy em—dash -lead -lead -lead fox hello ellipsis…
+22	1	0	world dog em—dash jumps quick co-op lazy the    
+20	7	0	multi--dash quick co-op three
+9	10	0	\nem—dash supercalifragilistic one -lead hello brown three a -lead dog lazy fox em—dash    
+16	6	1	   dash- three fox hello co-op hello a to hello to well-known jumps world multi--dash brown
+26	2	0	multi--dash a
+3	1	1	the jumps multi--dash supercalifragilistic well-known dash- supercalifragilistic two lazy x a two
+7	8	0	naïve supercalifragilistic jumps test
+20	9	2	\nquick dog the three jumps brown
+9	8	2	brown jumps em—dash quick lazy the
+17	7	2	-lead hello the fox a dash- co-op jumps the -lead brown multi--dash dash- em—dash
+7	9	0	dog the well-known dash- brown wrap ellipsis…    
+1	7	0	jumps    
+10	6	1	naïve a three multi--dash brown naïve to hello dog -lead lazy jumps em—dash jumps
+21	6	2	well-known naïve well-known lazy quick one the brown -lead co-op hello quick
+25	8	0	
+14	6	2	ellipsis…
+10	10	1	
+13	4	0	   multi--dash to well-known dash- wrap ellipsis… supercalifragilistic two x co-op jumps one three brown
+11	6	0	   test wrap co-op x supercalifragilistic a ellipsis… x ellipsis… em—dash wrap
+23	1	2	fox\ntwo a two fox ellipsis… hello supercalifragilistic jumps hello jumps one lazy to
+5	8	1	world -lead jumps three brown wrap em—dash a hello multi--dash multi--dash    
+15	3	0	co-op em—dash ellipsis… naïve dog dash- x multi--dash quick two fox supercalifragilistic fox x the    
+7	5	0	brown a wrap supercalifragilistic the hello
+18	2	1	jumps a two three
+5	8	1	   well-known dog three three ellipsis… -lead quick x one well-known co-op
+11	3	0	jumps wrap em—dash world multi--dash    
+6	6	1	   quick to dash- lazy to well-known co-op    
+6	3	1	fox world
+12	4	1	brown jumps a a hello em—dash dash- well-known multi--dash quick co-op ellipsis… one
+16	7	1	hello world
+4	9	1	ellipsis… the well-known two dash- lazy world naïve em—dash co-op
+17	10	1	fox\nmulti--dash lazy naïve dash- fox fox naïve hello -lead em—dash one quick a quick
+15	6	2	   a lazy lazy wrap x well-known
+20	5	0	the\nem—dash hello brown naïve co-op lazy em—dash naïve -lead    
+9	9	0	   quick naïve x ellipsis… a -lead x    
+12	2	0	a test a supercalifragilistic two a two world brown well-known quick co-op
+22	7	2	fox\n-lead hello supercalifragilistic lazy a a em—dash fox well-known jumps em—dash co-op jumps three naïve    
+22	3	0	
+1	4	0	multi--dash\none world ellipsis… a
+19	9	0	jumps jumps quick x two multi--dash quick two
+5	3	0	lazy three the wrap three the
+22	1	2	
+14	9	2	one\nworld dash- em—dash quick to fox naïve    
+25	5	0	ellipsis…\nto hello multi--dash well-known a lazy three three dog the co-op    
+1	4	1	
+17	3	2	   lazy brown fox jumps jumps to
+16	3	2	   quick two two test the one jumps lazy one naïve one jumps wrap a co-op world
+18	10	2	lazy world -lead wrap dash- world co-op well-known hello
+19	2	0	   dog two
+1	8	1	hello\nthe hello the lazy a the -lead supercalifragilistic multi--dash
+14	2	2	hello
+24	6	2	supercalifragilistic one one brown multi--dash test wrap quick fox three brown brown naïve three one quick
+1	3	1	jumps\nsupercalifragilistic dog multi--dash quick co-op
+10	10	2	two three dash- jumps two test world quick test wrap wrap naïve    
+7	10	0	world dash- lazy jumps naïve one
+4	1	1	one test to wrap ellipsis… two the ellipsis… two
+14	9	1	\na -lead the a naïve lazy world
+25	5	0	the supercalifragilistic jumps
+24	8	2	brown\nnaïve supercalifragilistic the multi--dash quick well-known well-known wrap wrap jumps fox
+11	4	2	the x -lead quick dog a three a to multi--dash x
+8	10	0	\nworld two lazy fox wrap fox quick jumps brown multi--dash x
+17	9	0	quick\nthree hello dog
+10	2	1	co-op\nem—dash brown lazy co-op multi--dash wrap two dog co-op x
+16	3	0	quick test brown    
+13	9	1	   \na em—dash to -lead jumps jumps wrap co-op a wrap test -lead three
+7	8	0	   world\nem—dash supercalifragilistic test brown dash- well-known quick lazy well-known three    
+11	2	0	one dog hello three naïve wrap dog ellipsis… -lead three three ellipsis… one co-op
+13	1	2	dash- quick em—dash jumps world
+7	3	2	fox the dog x test naïve -lead
+14	10	2	lazy brown three to
+5	1	1	   
+23	8	1	jumps test world em—dash
+8	8	0	\n-lead hello to -lead world lazy    
+12	5	2	em—dash the world the naïve brown x the hello world supercalifragilistic the
+15	4	2	em—dash to -lead quick co-op jumps the dog em—dash
+12	10	2	dog lazy x dog one supercalifragilistic jumps co-op x dog fox ellipsis… two    
+24	8	2	a jumps em—dash multi--dash co-op test fox a three naïve hello    
+3	8	2	dog to fox multi--dash world supercalifragilistic    
+13	10	1	to\nmulti--dash ellipsis… multi--dash well-known em—dash world hello the em—dash world
+6	9	0	   
+20	1	0	well-known\nellipsis… naïve naïve co-op em—dash three dash- brown brown fox test hello brown multi--dash dash-
+11	5	0	a
+17	1	1	   supercalifragilistic dash- wrap fox supercalifragilistic jumps three well-known supercalifragilistic co-op world to dash-
+12	4	1	   lazy three jumps well-known one co-op world the
+17	9	0	dash-\nellipsis… a    
+21	8	1	hello to two em—dash dog one jumps naïve jumps hello multi--dash multi--dash em—dash
+22	4	0	
+14	3	1	dash- multi--dash ellipsis… em—dash the well-known well-known a -lead brown naïve -lead ellipsis… lazy a ellipsis…
+13	7	0	   two dash- to well-known dash- lazy jumps one hello em—dash quick three to supercalifragilistic    
+13	2	1	   well-known
+24	10	0	lazy
+13	2	1	
+23	3	0	naïve multi--dash well-known dog three naïve one three naïve one multi--dash naïve em—dash multi--dash multi--dash
+14	5	0	dash-
+16	1	2	   \nwrap lazy to lazy
+2	9	0	   em—dash jumps multi--dash quick jumps
+13	4	0	a naïve wrap dash- ellipsis… well-known
+20	4	2	   fox
+1	9	2	dash-
+19	2	1	brown fox ellipsis…    
+12	3	0	well-known three
+14	6	0	hello brown em—dash co-op supercalifragilistic naïve naïve three dog jumps supercalifragilistic em—dash co-op test
+26	10	0	to ellipsis… multi--dash wrap naïve x
+13	8	0	well-known fox fox supercalifragilistic three -lead em—dash supercalifragilistic
+9	7	2	-lead\nx dash- ellipsis… hello -lead test jumps two wrap hello the x    
+22	1	2	two
+17	6	2	-lead -lead em—dash fox em—dash
+22	3	2	hello\ndash- three dash- multi--dash supercalifragilistic lazy ellipsis… supercalifragilistic naïve the supercalifragilistic one    
+8	9	2	quick\njumps two -lead multi--dash co-op
+5	3	0	quick co-op three quick test three multi--dash lazy x dog brown dash-    
+15	7	0	a quick naïve one x
+8	4	1	   well-known wrap three two well-known co-op    
+14	1	0	test lazy jumps two x supercalifragilistic ellipsis… jumps jumps supercalifragilistic co-op jumps
+17	5	2	fox the multi--dash the fox dash- co-op three lazy
+14	3	1	dash-\nem—dash co-op ellipsis… brown a test two
+3	8	1	the em—dash co-op
+16	4	1	
+15	3	2	
+23	8	1	co-op
+1	6	0	   
+23	4	1	the test x brown quick world brown one quick co-op x fox x
+16	2	1	supercalifragilistic dash- ellipsis… test to hello
+22	9	1	jumps x well-known naïve a x wrap dash- hello a supercalifragilistic wrap world x multi--dash
+8	4	0	x
+24	3	2	brown quick supercalifragilistic em—dash ellipsis… -lead fox one hello to ellipsis… world
+4	8	0	hello ellipsis… world brown fox quick brown
+22	8	0	dog a two lazy one test
+14	3	0	em—dash jumps hello naïve the one three two brown em—dash
+15	1	0	to naïve lazy co-op supercalifragilistic well-known -lead three hello well-known
+4	8	2	wrap multi--dash world multi--dash quick co-op fox the one world test dog test ellipsis… supercalifragilistic
+23	3	1	fox\ntwo dash- brown    
+20	4	1	\nellipsis…
+21	7	2	co-op wrap hello fox    
+23	2	0	one em—dash a naïve well-known x world brown test
+11	6	1	   co-op well-known a fox hello fox well-known -lead fox naïve
+24	10	0	       
+4	2	0	x multi--dash co-op ellipsis… naïve well-known jumps em—dash lazy dash- dash- test dash- fox world dash-    
+16	2	2	well-known test brown em—dash -lead jumps ellipsis… two -lead a dog brown co-op jumps world fox
+12	2	2	
+26	10	1	wrap fox multi--dash world -lead quick dog dash- naïve supercalifragilistic -lead one two fox a    
+7	6	1	brown test two well-known brown the wrap three multi--dash lazy dog well-known
+25	10	2	-lead\nto well-known one to ellipsis…
+24	8	2	fox hello dash- x co-op lazy em—dash -lead wrap fox a world quick
+22	10	0	ellipsis… x the to brown dog brown two naïve fox brown a brown co-op a
+8	6	2	wrap world jumps the
+3	8	1	
+1	9	0	wrap -lead a wrap one lazy test hello supercalifragilistic two test dash- two ellipsis… brown world
+14	8	2	   to\nthe fox three quick hello dash- brown a brown
+16	4	2	quick\nthe    
+16	2	2	\n
+4	3	2	\nellipsis… supercalifragilistic quick one
+14	4	2	   \ndog quick wrap well-known em—dash dog -lead x

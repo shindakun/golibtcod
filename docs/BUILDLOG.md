@@ -809,6 +809,71 @@ which points callers at `Coverage()` when they need a value they can keep.
 
 ---
 
+## 2026-08-04: session 8
+
+Closed the one real API parity gap: word-wrapped printing.
+
+### The gap
+
+A parity audit against upstream's 50 C translation units found the port
+matched on every algorithm but was missing `console_printing.c`'s
+`print_rect` / `get_height_rect` family. The effect was not subtle:
+`Print` writes a single row and silently drops anything past the console
+edge, so a 43-character string in a 20-wide console rendered as
+`"the quick brown fox"` and lost the rest.
+
+### `console/print_rect.go`
+
+`PrintRect` and `HeightRect` port C's `next_split_` and the
+`printn_internal_` driver loop. The two share a body; `HeightRect` runs it
+with drawing suppressed, which is how C implements `get_height_rect`.
+
+C classifies characters with utf8proc; the standard library's `unicode`
+package answers the same questions, so this needed no new dependency. The
+break rules are C's: break at the last space before overflow, break *after*
+a dash so the dash stays on the line, split mid-word when a single word is
+wider than the line, collapse the run of spaces a break lands on, and treat
+line and paragraph separators as hard breaks (the latter advancing two
+rows).
+
+### Verified against the C build
+
+Compiled `console.c` + `console_printing.c` + `console_drawing.c` against
+utf8proc and dumped rendered layouts, the same golden-fixture method used
+for the other modules. `console_etc.c` drags in SDL, so the harness stubs
+the four globals `console.c` needs rather than linking it.
+
+**600 randomized cases are byte-identical**, covering widths 1 to 26, all
+three alignments, embedded newlines, leading and trailing whitespace, empty
+strings, em-dashes, ellipses and accented characters. 200 of them are
+committed as a fixture in `internal/fixtures/wrap/`.
+
+Two bugs surfaced only because the comparison was against real C rather
+than my own expectations:
+
+- **`runeWidth` returned 1 for control characters.** utf8proc gives them a
+  charwidth of 0, and C's `next_split_` adds that width *before* its
+  `is_newline` check. So a `\n` arriving on a full line falsely overflowed
+  it and forced a break, emitting a stray blank row. Fixed by returning 0
+  for Cc, Mn, Me, Cf, Zl and Zp.
+- **Empty input returned height 1.** C returns before any layout when the
+  string is empty, so the bounding-box arithmetic never runs.
+
+A third finding corrected a test rather than the code: `HeightRect` is
+bounded by the console height, because C's driver loop carries the same
+`top < console->h` condition whether or not it is drawing. I had asserted
+the full layout height; C returns 3 for that case and so does the port.
+Documented on the method.
+
+### Results after session 8
+
+- 20 packages. `go build`, `go vet`, `gofmt`, `golangci-lint`, markdownlint
+  all clean.
+- All prior fixtures unchanged; `wrap` adds 200 verified layouts.
+- Still zero third-party dependencies.
+
+---
+
 # Deferred Register
 
 **This is the canonical list.** Deferred items were previously scattered

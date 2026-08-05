@@ -1,0 +1,1297 @@
+#0 h=5
+|  world world|
+|supercalifrag|
+| ilistic test|
+|    dog co-op|
+|        three|
+|             |
+|             |
+|             |
+|             |
+|             |
+#1 h=11
+| |
+|f|
+|o|
+|x|
+|n|
+|a|
+|ï|
+|v|
+|e|
+|t|
+#2 h=0
+|                    |
+|                    |
+|                    |
+#3 h=3
+|the three three |
+|ellipsis… dog - |
+#4 h=0
+|                       |
+|                       |
+#5 h=7
+| x|
+|fo|
+| x|
+|em|
+|—d|
+|as|
+#6 h=8
+|   naïve  |
+|hello     |
+|jumps     |
+|ellipsis… |
+|well-known|
+|naïve     |
+|ellipsis… |
+#7 h=5
+|       test        |
+| quick the world - |
+|lead the co-op fox |
+| x ellipsis… wrap  |
+| dash- brown wrap  |
+|                   |
+|                   |
+#8 h=3
+|     to a|
+|    brown|
+#9 h=3
+|em—|
+|das|
+#10 h=7
+|       |
+|ellipsi|
+|s… test|
+|one    |
+|well-  |
+|known  |
+|brown  |
+|       |
+#11 h=9
+|      |
+| dash-|
+|ellips|
+|is… em|
+| —dash|
+| brown|
+|to dog|
+| x em—|
+#12 h=6
+|  x the  |
+|world one|
+|supercali|
+|fragilist|
+|ic a dash|
+#13 h=6
+|                    co-op|
+|   supercalifragilistic -|
+|   lead co-op quick quick|
+|  multi--dash the multi--|
+|          dash co-op test|
+|     supercalifragilistic|
+|                         |
+|                         |
+|                         |
+|                         |
+#14 h=1
+|   multi--dash one to    |
+|                         |
+|                         |
+|                         |
+|                         |
+|                         |
+|                         |
+|                         |
+#15 h=9
+|supercalif|
+|ragilistic|
+|brown two |
+| world a  |
+|ellipsis… |
+|  -lead   |
+|  jumps   |
+|ellipsis… |
+#16 h=2
+|-lead              |
+#17 h=0
+|                    |
+|                    |
+|                    |
+|                    |
+|                    |
+|                    |
+|                    |
+|                    |
+#18 h=9
+|jum|
+|ps |
+|naï|
+|ve |
+|jum|
+|ps |
+|a  |
+|tes|
+|t  |
+|   |
+#19 h=3
+|x world em— |
+|dash fox co-|
+|     op     |
+|            |
+|            |
+#20 h=2
+|                         |
+|em—dash wrap three       |
+|                         |
+#21 h=3
+|lazy multi--dash |
+|supercalifragilis|
+#22 h=1
+|two  |
+#23 h=1
+|     -lead dash-      |
+|                      |
+|                      |
+|                      |
+|                      |
+|                      |
+|                      |
+|                      |
+|                      |
+#24 h=5
+|    lazy to ellipsis…|
+|                three|
+| supercalifragilistic|
+|dash- lazy naïve well|
+|               -known|
+|                     |
+|                     |
+|                     |
+#25 h=4
+|h|
+|e|
+|l|
+#26 h=0
+|    |
+#27 h=0
+|     |
+|     |
+#28 h=0
+|               |
+|               |
+|               |
+|               |
+#29 h=3
+|             |
+|co-op fox    |
+|brown one    |
+|             |
+|             |
+#30 h=5
+|           the            |
+| the supercalifragilistic |
+|test well-known -lead test|
+|  lazy quick brown jumps  |
+| jumps x wrap well-known  |
+|                          |
+|                          |
+|                          |
+|                          |
+|                          |
+#31 h=8
+| |
+|l|
+|a|
+|z|
+|y|
+|n|
+|a|
+#32 h=9
+|hel|
+|lo |
+|wor|
+|ld |
+|to |
+|co-|
+|op |
+|hel|
+#33 h=4
+|hello hello             |
+|supercalifragilistic the|
+|world x the to -lead    |
+|jumps test              |
+|                        |
+|                        |
+#34 h=3
+|the test lazy naïve   |
+|hello test the fox    |
+#35 h=3
+|  three co-op   |
+| world the lazy |
+|    lazy two    |
+|                |
+#36 h=3
+|dog -lead multi-- |
+|dash jumps well-  |
+#37 h=4
+| em—|
+|dash|
+| one|
+#38 h=4
+|dog hello the|
+|  dog dash-  |
+|lazy one dash|
+#39 h=2
+| dog co-op |
+#40 h=1
+|world -lead    |
+|               |
+|               |
+|               |
+|               |
+|               |
+|               |
+|               |
+#41 h=4
+|the|
+|to |
+|two|
+#42 h=5
+|                  |
+|     x jumps quick|
+|  quick wrap naïve|
+|  lazy brown three|
+#43 h=2
+|                 |
+|   lazy ellipsis…|
+|                 |
+|                 |
+#44 h=1
+|   |
+|   |
+|   |
+|   |
+|   |
+|   |
+|   |
+|   |
+|   |
+#45 h=2
+| three naïve |
+| em—dash the |
+|             |
+|             |
+|             |
+|             |
+|             |
+|             |
+#46 h=1
+|        world|
+|             |
+#47 h=6
+|                    |
+|-lead ellipsis… x   |
+|the jumps lazy lazy |
+|em—dash -lead -lead |
+|-lead fox hello     |
+|ellipsis…           |
+|                    |
+|                    |
+|                    |
+|                    |
+#48 h=2
+|world dog em—dash     |
+#49 h=2
+|multi--dash quick co|
+|-op three           |
+|                    |
+|                    |
+|                    |
+|                    |
+|                    |
+#50 h=11
+|         |
+|em—dash  |
+|supercali|
+|fragilist|
+|ic one - |
+|lead     |
+|hello    |
+|brown    |
+|three a -|
+|lead dog |
+#51 h=7
+|     dash- three|
+| fox hello co-op|
+|hello a to hello|
+|   to well-known|
+|     jumps world|
+|     multi--dash|
+#52 h=1
+|multi--dash a             |
+|                          |
+#53 h=2
+|the|
+#54 h=6
+|naïve  |
+|superca|
+|lifragi|
+|listic |
+|jumps  |
+|test   |
+|       |
+|       |
+#55 h=3
+|                    |
+|quick dog the three |
+|    jumps brown     |
+|                    |
+|                    |
+|                    |
+|                    |
+|                    |
+|                    |
+#56 h=5
+|  brown  |
+|jumps em—|
+|  dash   |
+|  quick  |
+|lazy the |
+|         |
+|         |
+|         |
+#57 h=5
+| -lead hello the |
+|fox a dash- co-op|
+| jumps the -lead |
+|brown multi--dash|
+|  dash- em—dash  |
+|                 |
+|                 |
+#58 h=8
+|dog the|
+|well-  |
+|known  |
+|dash-  |
+|brown  |
+|wrap   |
+|ellipsi|
+|s…     |
+|       |
+#59 h=5
+|j|
+|u|
+|m|
+|p|
+|s|
+| |
+| |
+#60 h=7
+|   naïve a|
+|     three|
+|   multi--|
+|dash brown|
+|  naïve to|
+|hello dog |
+#61 h=4
+|well-known naïve well|
+|-known lazy quick one|
+|the brown -lead co-op|
+|     hello quick     |
+|                     |
+|                     |
+#62 h=0
+|                         |
+|                         |
+|                         |
+|                         |
+|                         |
+|                         |
+|                         |
+|                         |
+#63 h=1
+|  ellipsis…   |
+|              |
+|              |
+|              |
+|              |
+|              |
+#64 h=0
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+#65 h=5
+|   multi--   |
+|dash to well-|
+|known dash-  |
+|wrap         |
+#66 h=7
+|   test    |
+|wrap co-op |
+|x          |
+|supercalifr|
+|agilistic a|
+|ellipsis… x|
+#67 h=2
+|          fox          |
+#68 h=9
+|orld |
+|-lead|
+|jumps|
+|three|
+|brown|
+| wrap|
+|  em—|
+| dash|
+#69 h=4
+|co-op em—dash  |
+|ellipsis… naïve|
+|dog dash- x    |
+#70 h=6
+|brown a|
+|wrap   |
+|superca|
+|lifragi|
+|listic |
+#71 h=1
+| jumps a two three|
+|                  |
+#72 h=9
+|     |
+|well-|
+|known|
+|  dog|
+|three|
+|three|
+|ellip|
+|sis… |
+#73 h=4
+|jumps wrap |
+|em—dash    |
+|world multi|
+#74 h=7
+|      |
+| quick|
+|    to|
+| dash-|
+|  lazy|
+|    to|
+#75 h=2
+|   fox|
+| world|
+|      |
+#76 h=5
+| brown jumps|
+|a a hello em|
+| —dash dash-|
+|  well-known|
+#77 h=1
+|     hello world|
+|                |
+|                |
+|                |
+|                |
+|                |
+|                |
+#78 h=10
+|elli|
+|psis|
+|   …|
+| the|
+|well|
+|-kno|
+|  wn|
+| two|
+|dash|
+#79 h=6
+|              fox|
+| multi--dash lazy|
+|  naïve dash- fox|
+|fox naïve hello -|
+| lead em—dash one|
+|    quick a quick|
+|                 |
+|                 |
+|                 |
+|                 |
+#80 h=3
+|   a lazy lazy |
+| wrap x well-  |
+|     known     |
+|               |
+|               |
+|               |
+#81 h=4
+|the                 |
+|em—dash hello brown |
+|naïve co-op lazy em—|
+|dash naïve -lead    |
+|                    |
+#82 h=4
+|   quick |
+|naïve x  |
+|ellipsis…|
+|a -lead x|
+|         |
+|         |
+|         |
+|         |
+|         |
+#83 h=3
+|a test a    |
+|supercalifra|
+#84 h=7
+|         fox          |
+|     -lead hello      |
+| supercalifragilistic |
+| lazy a a em—dash fox |
+| well-known jumps em— |
+|dash co-op jumps three|
+|      naïve           |
+#85 h=0
+|                      |
+|                      |
+|                      |
+#86 h=5
+|m|
+|u|
+|l|
+|t|
+#87 h=3
+|jumps jumps quick x|
+|two multi--dash    |
+|quick two          |
+|                   |
+|                   |
+|                   |
+|                   |
+|                   |
+|                   |
+#88 h=4
+|lazy |
+|three|
+|the  |
+#89 h=0
+|                      |
+#90 h=4
+|     one      |
+|world dash- em|
+|—dash quick to|
+|fox naïve     |
+|              |
+|              |
+|              |
+|              |
+|              |
+#91 h=4
+|ellipsis…                |
+|to hello multi--dash well|
+|-known a lazy three three|
+|dog the co-op            |
+|                         |
+#92 h=0
+| |
+| |
+| |
+| |
+#93 h=2
+|   lazy brown fox|
+| jumps jumps to  |
+|                 |
+#94 h=4
+|   quick two two|
+|  test the one  |
+| jumps lazy one |
+#95 h=4
+| lazy world -lead |
+| wrap dash- world |
+| co-op well-known |
+|      hello       |
+|                  |
+|                  |
+|                  |
+|                  |
+|                  |
+|                  |
+#96 h=1
+|   dog two         |
+|                   |
+#97 h=9
+|h|
+|e|
+|l|
+|l|
+|o|
+|t|
+|h|
+|e|
+#98 h=1
+|    hello     |
+|              |
+#99 h=5
+|supercalifragilistic one|
+| one brown multi--dash  |
+|  test wrap quick fox   |
+|three brown brown naïve |
+|    three one quick     |
+|                        |
+#100 h=4
+|j|
+|u|
+|m|
+#101 h=7
+|two three |
+|  dash-   |
+|jumps two |
+|test world|
+|quick test|
+|wrap wrap |
+|naïve     |
+|          |
+|          |
+|          |
+#102 h=6
+|world  |
+|dash-  |
+|lazy   |
+|jumps  |
+|naïve  |
+|one    |
+|       |
+|       |
+|       |
+|       |
+#103 h=2
+| one|
+#104 h=4
+|              |
+| a -lead the a|
+|    naïve lazy|
+|         world|
+|              |
+|              |
+|              |
+|              |
+|              |
+#105 h=2
+|the supercalifragilistic |
+|jumps                    |
+|                         |
+|                         |
+|                         |
+#106 h=6
+|         brown          |
+|         naïve          |
+|supercalifragilistic the|
+|multi--dash quick well- |
+| known well-known wrap  |
+|     wrap jumps fox     |
+|                        |
+|                        |
+#107 h=5
+|the x -lead|
+|quick dog a|
+|three a to |
+|multi--dash|
+#108 h=10
+|        |
+|world   |
+|two lazy|
+|fox wrap|
+|fox     |
+|quick   |
+|jumps   |
+|brown   |
+|multi-- |
+|dash x  |
+#109 h=2
+|quick            |
+|three hello dog  |
+|                 |
+|                 |
+|                 |
+|                 |
+|                 |
+|                 |
+|                 |
+#110 h=3
+|     co-op|
+|   em—dash|
+#111 h=1
+|quick test brown|
+|                |
+|                |
+#112 h=7
+|             |
+|a em—dash to |
+|  -lead jumps|
+|jumps wrap co|
+|   -op a wrap|
+|   test -lead|
+|        three|
+|             |
+|             |
+#113 h=9
+|       |
+|world  |
+|em—dash|
+|superca|
+|lifragi|
+|listic |
+|test   |
+|brown  |
+#114 h=3
+|one dog    |
+|hello three|
+#115 h=2
+| dash- quick |
+#116 h=4
+|fox the|
+| dog x |
+| test  |
+#117 h=2
+|  lazy brown  |
+|   three to   |
+|              |
+|              |
+|              |
+|              |
+|              |
+|              |
+|              |
+|              |
+#118 h=1
+|     |
+#119 h=2
+|   jumps test world em—|
+|                   dash|
+|                       |
+|                       |
+|                       |
+|                       |
+|                       |
+|                       |
+#120 h=6
+|        |
+|-lead   |
+|hello to|
+|-lead   |
+|world   |
+|lazy    |
+|        |
+|        |
+#121 h=6
+|em—dash the |
+| world the  |
+|naïve brown |
+|x the hello |
+|   world    |
+#122 h=4
+| em—dash to -  |
+|lead quick co- |
+| op jumps the  |
+|  dog em—dash  |
+#123 h=8
+| dog lazy x |
+|  dog one   |
+|supercalifra|
+|  gilistic  |
+|jumps co-op |
+| x dog fox  |
+| ellipsis…  |
+|  two       |
+|            |
+|            |
+#124 h=3
+|a jumps em—dash multi-- |
+| dash co-op test fox a  |
+| three naïve hello      |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+#125 h=9
+|dog|
+|to |
+|fox|
+|mul|
+|ti-|
+|-da|
+|sh |
+|wor|
+#126 h=8
+|           to|
+|  multi--dash|
+|    ellipsis…|
+|  multi--dash|
+|well-known em|
+|  —dash world|
+|hello the em—|
+|   dash world|
+|             |
+|             |
+#127 h=1
+|      |
+|      |
+|      |
+|      |
+|      |
+|      |
+|      |
+|      |
+|      |
+#128 h=2
+|well-known          |
+#129 h=1
+|a          |
+|           |
+|           |
+|           |
+|           |
+#130 h=2
+|                 |
+#131 h=5
+|        lazy|
+| three jumps|
+|  well-known|
+|   one co-op|
+#132 h=2
+|dash-            |
+|ellipsis… a      |
+|                 |
+|                 |
+|                 |
+|                 |
+|                 |
+|                 |
+|                 |
+#133 h=5
+| hello to two em—dash|
+|  dog one jumps naïve|
+|  jumps hello multi--|
+| dash multi--dash em—|
+|                 dash|
+|                     |
+|                     |
+|                     |
+#134 h=0
+|                      |
+|                      |
+|                      |
+|                      |
+#135 h=4
+| dash- multi--|
+|dash ellipsis…|
+|   em—dash the|
+#136 h=8
+|   two dash- |
+|to well-known|
+|dash- lazy   |
+|jumps one    |
+|hello em—dash|
+|quick three  |
+|to           |
+#137 h=1
+|   well-known|
+|             |
+#138 h=1
+|lazy                    |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+#139 h=0
+|             |
+|             |
+#140 h=4
+|naïve multi--dash well-|
+|known dog three naïve  |
+|one three naïve one    |
+#141 h=1
+|dash-         |
+|              |
+|              |
+|              |
+|              |
+#142 h=2
+|                |
+#143 h=10
+|  |
+|em|
+|—d|
+|as|
+|h |
+|ju|
+|mp|
+|s |
+|mu|
+#144 h=4
+|a naïve wrap |
+|dash-        |
+|ellipsis…    |
+|well-known   |
+#145 h=1
+|          fox       |
+|                    |
+|                    |
+|                    |
+#146 h=5
+|d|
+|a|
+|s|
+|h|
+|-|
+| |
+| |
+| |
+| |
+#147 h=1
+|n fox ellipsis…    |
+|                   |
+#148 h=2
+|well-known  |
+|three       |
+|            |
+#149 h=7
+|hello brown em|
+|—dash co-op   |
+|supercalifragi|
+|listic naïve  |
+|naïve three   |
+|dog jumps     |
+#150 h=2
+|to ellipsis… multi--dash  |
+|wrap naïve x              |
+|                          |
+|                          |
+|                          |
+|                          |
+|                          |
+|                          |
+|                          |
+|                          |
+#151 h=7
+|well-known   |
+|fox fox      |
+|supercalifrag|
+|ilistic three|
+|-lead em—dash|
+|supercalifrag|
+|ilistic      |
+|             |
+#152 h=8
+|  -lead  |
+| x dash- |
+|ellipsis…|
+| hello - |
+|lead test|
+|jumps two|
+|  wrap   |
+#153 h=1
+|         two          |
+#154 h=2
+| -lead -lead em— |
+|dash fox em—dash |
+|                 |
+|                 |
+|                 |
+|                 |
+#155 h=4
+|        hello         |
+|  dash- three dash-   |
+|     multi--dash      |
+#156 h=7
+| quick  |
+| jumps  |
+| two -  |
+|  lead  |
+|multi-- |
+|dash co-|
+|   op   |
+|        |
+|        |
+#157 h=4
+|quick|
+|co-op|
+|three|
+#158 h=2
+|a quick naïve  |
+|one x          |
+|               |
+|               |
+|               |
+|               |
+|               |
+#159 h=5
+|   well-|
+|   known|
+|    wrap|
+|   three|
+#160 h=2
+|test lazy     |
+#161 h=4
+| fox the multi-- |
+|dash the fox dash|
+|  - co-op three  |
+|      lazy       |
+|                 |
+#162 h=4
+|         dash-|
+| em—dash co-op|
+|     ellipsis…|
+#163 h=6
+|the|
+|em—|
+|das|
+|  h|
+|co-|
+| op|
+|   |
+|   |
+#164 h=0
+|                |
+|                |
+|                |
+|                |
+#165 h=0
+|               |
+|               |
+|               |
+#166 h=1
+|                  co-op|
+|                       |
+|                       |
+|                       |
+|                       |
+|                       |
+|                       |
+|                       |
+#167 h=1
+| |
+| |
+| |
+| |
+| |
+| |
+#168 h=3
+| the test x brown quick|
+|  world brown one quick|
+|          co-op x fox x|
+|                       |
+#169 h=3
+|supercalifragili|
+|      stic dash-|
+#170 h=6
+|    jumps x well-known|
+|  naïve a x wrap dash-|
+|               hello a|
+|  supercalifragilistic|
+|  wrap world x multi--|
+|                  dash|
+|                      |
+|                      |
+|                      |
+#171 h=1
+|x       |
+|        |
+|        |
+|        |
+#172 h=4
+|      brown quick       |
+|supercalifragilistic em—|
+|dash ellipsis… -lead fox|
+#173 h=9
+|hell|
+|o   |
+|elli|
+|psis|
+|…   |
+|worl|
+|d   |
+|brow|
+#174 h=2
+|dog a two lazy one    |
+|test                  |
+|                      |
+|                      |
+|                      |
+|                      |
+|                      |
+|                      |
+#175 h=4
+|em—dash jumps |
+|hello naïve   |
+|the one three |
+#176 h=2
+|to naïve lazy  |
+#177 h=9
+|wrap|
+|mult|
+|i-- |
+|dash|
+|worl|
+| d  |
+|mult|
+|i-- |
+#178 h=2
+|                    fox|
+|    two dash- brown    |
+|                       |
+#179 h=2
+|                    |
+|           ellipsis…|
+|                    |
+|                    |
+#180 h=1
+|o-op wrap hello fox  |
+|                     |
+|                     |
+|                     |
+|                     |
+|                     |
+|                     |
+#181 h=3
+|one em—dash a naïve    |
+|well-known x world     |
+#182 h=6
+|      co-op|
+| well-known|
+|a fox hello|
+|  fox well-|
+|known -lead|
+|  fox naïve|
+#183 h=1
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+#184 h=3
+|x   |
+|mult|
+#185 h=3
+|well-known test |
+|brown em—dash - |
+#186 h=0
+|            |
+|            |
+#187 h=4
+|rap fox multi--dash world |
+|     -lead quick dog dash-|
+|aïve supercalifragilistic |
+|   -lead one two fox a    |
+|                          |
+|                          |
+|                          |
+|                          |
+|                          |
+|                          |
+#188 h=7
+|  brown|
+|   test|
+|    two|
+|  well-|
+|  known|
+|  brown|
+#189 h=3
+|          -lead          |
+|  to well-known one to   |
+|        ellipsis…        |
+|                         |
+|                         |
+|                         |
+|                         |
+|                         |
+|                         |
+|                         |
+#190 h=3
+|fox hello dash- x co-op |
+|lazy em—dash -lead wrap |
+|   fox a world quick    |
+|                        |
+|                        |
+|                        |
+|                        |
+|                        |
+#191 h=4
+|ellipsis… x the to    |
+|brown dog brown two   |
+|naïve fox brown a     |
+|brown co-op a         |
+|                      |
+|                      |
+|                      |
+|                      |
+|                      |
+|                      |
+#192 h=4
+|  wrap  |
+| world  |
+| jumps  |
+|  the   |
+|        |
+|        |
+#193 h=0
+|   |
+|   |
+|   |
+|   |
+|   |
+|   |
+|   |
+|   |
+#194 h=10
+|w|
+|r|
+|a|
+|p|
+|-|
+|l|
+|e|
+|a|
+|d|
+#195 h=5
+|       to     |
+|the fox three |
+| quick hello  |
+|dash- brown a |
+|    brown     |
+|              |
+|              |
+|              |
+#196 h=2
+|     quick      |
+|    the         |
+|                |
+|                |
+#197 h=2
+|                |
+|                |
+#198 h=4
+|    |
+|elli|
+|psis|
+#199 h=5
+|              |
+|dog quick wrap|
+|well-known em—|
+|dash dog -lead|

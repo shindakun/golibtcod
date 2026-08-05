@@ -1,0 +1,10 @@
+#include "color.h"
+#include "libtcod_int.h"
+// Minimal globals so console.c/console_printing.c link without the SDL-
+// dependent translation units (console_etc.c, globals.c, sys_c.c).
+const TCOD_ColorRGB TCOD_white = {255,255,255};
+const TCOD_ColorRGB TCOD_black = {0,0,0};
+TCOD_internal_context_t TCOD_ctx = {0};
+void TCOD_sys_shutdown(void) {}
+struct TCOD_Tileset* TCOD_get_default_tileset(void) { return 0; }
+void TCOD_set_default_tileset(struct TCOD_Tileset* t) { (void)t; }

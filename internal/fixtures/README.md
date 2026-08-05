@@ -37,6 +37,7 @@ by both the C generator and the Go test.
 | `heightmap` | 1,388 values: a full hill/dig/fbm/erosion/normalize chain, interpolation samples, and a 33x33 midpoint-displacement map |
 | `namegen` | 208 generated names across 3 rule forms and 2 seeds |
 | `tileset` | every glyph bitmap of a 4x6 BDF font, as alpha coverage (see `tileset/`) |
+| `wrap` | 200 word-wrapped console layouts: glyph-for-glyph output plus the reported height, across widths 1-26, all three alignments, embedded newlines and Unicode (see `wrap/`) |
 
 ## Tileset fixtures
 

@@ -21,7 +21,7 @@ algorithm structure, C constants, and preserved quirks; see
 | `noise` | noise_c.c | Perlin, simplex, wavelet; fbm, turbulence (1-4D) |
 | `heightmap` | heightmap_c.c | hills, fbm, erosion, kernels, voronoi, MPD |
 | `color` | color.c | RGB/RGBA ops, HSV, gradients, alpha blend |
-| `console` | console.c (+ drawing) | tiles, 13 blend modes, blit w/ key color, print |
+| `console` | console.c (+ drawing/printing) | tiles, 13 blend modes, blit w/ key color, print, word-wrapped PrintRect/HeightRect |
 | `namegen` | namegen_c.c | syllable-set name generator w/ rule wildcards |
 | `parser` | parser_c.c / lex_c.c | libtcod .cfg format + optional schema validation (clean-room; divergences measured and documented) |
 | `image` | image_c.c | mipmapped images, blit to console, subcell 2x rendering |

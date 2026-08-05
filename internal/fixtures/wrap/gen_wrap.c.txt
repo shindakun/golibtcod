@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "console.h"
+#include "console_printing.h"
+// Emit a codepoint as UTF-8 so multi-byte glyphs survive the dump.
+static void putu8(int c){if(c<0x80)putchar(c);else if(c<0x800){putchar(0xC0|(c>>6));putchar(0x80|(c&0x3F));}else if(c<0x10000){putchar(0xE0|(c>>12));putchar(0x80|((c>>6)&0x3F));putchar(0x80|(c&0x3F));}else{putchar(0xF0|(c>>18));putchar(0x80|((c>>12)&0x3F));putchar(0x80|((c>>6)&0x3F));putchar(0x80|(c&0x3F));}}
+// Decode literal \n sequences into real newlines.
+static void unesc(char* s){char*o=s;for(char*p=s;*p;p++){if(p[0]=='\\'&&p[1]=='n'){*o++='\n';p++;}else *o++=*p;}*o=0;}
+int main(void){
+  char line[2048]; int idx=0;
+  while (fgets(line,sizeof line,stdin)) {
+    line[strcspn(line,"\n")]=0;
+    int w,h,a; char txt[1024];
+    char* t1=strchr(line,'\t'); if(!t1) continue; *t1=0; w=atoi(line);
+    char* t2=strchr(t1+1,'\t'); *t2=0; h=atoi(t1+1);
+    char* t3=strchr(t2+1,'\t'); *t3=0; a=atoi(t2+1);
+    strncpy(txt,t3+1,sizeof txt-1); txt[sizeof txt-1]=0; unesc(txt);
+    TCOD_Console* c=TCOD_console_new(w,h);
+    for(int k=0;k<c->w*c->h;k++) c->tiles[k].ch=' ';
+    int rh=TCOD_console_printn_rect(c,0,0,w,h,strlen(txt),txt,NULL,NULL,TCOD_BKGND_NONE,a);
+    printf("#%d h=%d\n",idx,rh);
+    for(int y=0;y<c->h;y++){printf("|");for(int x=0;x<c->w;x++){int ch=c->tiles[y*c->w+x].ch;if(ch==0||ch==' ')putchar(' ');else putu8(ch);}printf("|\n");}
+    TCOD_console_delete(c); idx++;
+  }
+  return 0;
+}
