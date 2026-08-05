@@ -37,6 +37,7 @@ by both the C generator and the Go test.
 | `heightmap` | 1,388 values: a full hill/dig/fbm/erosion/normalize chain, interpolation samples, and a 33x33 midpoint-displacement map |
 | `namegen` | 208 generated names across 3 rule forms and 2 seeds |
 | `tileset` | every glyph bitmap of a 4x6 BDF font, as alpha coverage (see `tileset/`) |
+| `pathfinder` | 80 Dijkstra distance fields over cost grids, vs a corrected C build (see `pathfinder/README.md`) |
 | `wrap` | 200 word-wrapped console layouts: glyph-for-glyph output plus the reported height, across widths 1-26, all three alignments, embedded newlines and Unicode (see `wrap/`) |
 
 ## Tileset fixtures
@@ -71,3 +72,11 @@ values are bit-identical, and the tests log the exact split, currently:
 
 To regenerate after changing the C baseline, rerun the commands above and
 copy the resulting `.txt` files here.
+
+## Pathfinder fixtures
+
+`pathfinder/` is the one directory here whose reference output does **not**
+come from stock libtcod. `pathfinder.c` ships with four defects that make it
+unable to compute a path at all, so the fixtures come from a corrected build
+and the patched source is committed alongside them. See
+`pathfinder/README.md` for the defects and the verification.

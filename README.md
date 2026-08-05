@@ -16,7 +16,7 @@ algorithm structure, C constants, and preserved quirks; see
 | `rng` | mersenne_c.c | MT19937 + CMWC, gaussian distributions, dice |
 | `bresenham` | bresenham_c.c | line iterator / callback / points |
 | `fov` | fov_c.c + 6 algo files | Map + BASIC, DIAMOND, SHADOW, PERMISSIVE 0-8, RESTRICTIVE (MRPAS), SYMMETRIC_SHADOWCAST |
-| `path` | path_c.c | classic A* + Mingos' Dijkstra |
+| `path` | path_c.c, pathfinder.c | classic A* + Mingos' Dijkstra + `Pathfinder` (cost-grid Dijkstra field) |
 | `bsp` | bsp_c.c | splits, traversals, FindNode |
 | `noise` | noise_c.c | Perlin, simplex, wavelet; fbm, turbulence (1-4D) |
 | `heightmap` | heightmap_c.c | hills, fbm, erosion, kernels, voronoi, MPD |

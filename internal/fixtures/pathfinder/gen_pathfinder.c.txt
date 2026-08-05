@@ -1,0 +1,33 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+#include "pathfinder.h"
+
+// Drive TCOD_Pathfinder over an int32 cost grid, mirroring how python-tcod
+// wires it: distance + graph2d pointers with explicit strides.
+int main(void){
+  int cases; if (scanf("%d",&cases)!=1) return 1;
+  for (int t=0;t<cases;t++){
+    int w,h,card,diag,nroots; scanf("%d %d %d %d %d",&w,&h,&card,&diag,&nroots);
+    int32_t* cost = malloc(sizeof(int32_t)*w*h);
+    for (int i=0;i<w*h;i++) scanf("%d",&cost[i]);
+    int32_t* dist = malloc(sizeof(int32_t)*w*h);
+    for (int i=0;i<w*h;i++) dist[i]=INT32_MAX;
+    size_t shape[2]={(size_t)h,(size_t)w};
+    struct TCOD_Pathfinder* pf = TCOD_pf_new(2, shape);
+    size_t dstr[2]={sizeof(int32_t)*w, sizeof(int32_t)};
+    TCOD_pf_set_distance_pointer(pf, dist, -4, dstr);
+    TCOD_pf_set_graph2d_pointer(pf, cost, -4, dstr, card, diag);
+    for (int r=0;r<nroots;r++){ int rx,ry; scanf("%d %d",&rx,&ry); dist[ry*w+rx]=0; }
+    TCOD_pf_recompile(pf);
+    TCOD_pf_compute(pf);
+    printf("#%d\n",t);
+    for (int y=0;y<h;y++){ for(int x=0;x<w;x++){
+      int32_t d=dist[y*w+x];
+      printf("%s%d", x?" ":"", d==INT32_MAX?-1:d);
+    } printf("\n"); }
+    TCOD_pf_delete(pf); free(cost); free(dist);
+  }
+  return 0;
+}

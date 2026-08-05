@@ -874,6 +874,89 @@ Documented on the method.
 
 ---
 
+## 2026-08-04: session 9
+
+Closed the last parity item (`pathfinder.c`) and set up upstream watching.
+
+### `pathfinder.c`: ported, with a large asterisk
+
+The module is a Dijkstra engine over a caller-owned cost grid, exposed for
+python-tcod rather than used anywhere inside libtcod. Building a C harness to
+verify the port against turned up **four independent defects that make it
+non-functional as shipped**, all confirmed against upstream HEAD `c54823e`
+through the GitHub contents API:
+
+1. `TCOD_pf_in_bounds` tests `0 < index[i]` where it means `0 >`, so every
+   positive coordinate is rejected and only `(0,0)` is ever in bounds.
+2. The relaxation test in `TCOD_pf_add_edge` is inverted (`>=`), and since
+   distances start at `INT_MAX` an unvisited neighbour always returns early.
+3. `graph.cost` is written by `TCOD_pf_set_graph2d_pointer` and never read
+   anywhere, so the caller's cost grid is dead and walls do nothing.
+4. `TCOD_pf_set_traversal_pointer` stores a byte stride into a `shape` field.
+
+Together these mean `TCOD_pf_compute` cannot leave the origin cell. Nothing
+in libtcod calls `TCOD_pf_*`, which is why the breakage is invisible there.
+No upstream issue or PR covers any of it.
+
+So `path/pathfinder.go` implements the **intended** behaviour rather than the
+shipped behaviour: bounds checked correctly, relaxation toward lower
+distances, and the cost grid honoured with non-positive cells impassable.
+Porting the bugs would have produced a pathfinder that returns the origin and
+nothing else.
+
+Verified against a C build corrected on all four counts: **250 randomized
+distance fields identical**, over grids to 12x12, cardinal and diagonal
+weights 0 to 14, walls, negative costs and multi-root seeding. 80 are
+committed in `internal/fixtures/pathfinder/` along with the patched C source
+so the claim is auditable.
+
+The NumPy-style pointer/stride/`int_type` machinery is replaced by ordinary
+Go slices. That descriptor exists so python-tcod can pass an array without
+copying; in Go it would be ceremony around what the type system already
+gives you. C's `ndim` reaches 4, but the only edge function hardcodes
+`origin[0]`/`origin[1]`, so the search is 2D upstream and 2D here.
+
+### Upstream watching
+
+`scripts/upstream-watch.sh` plus `.github/workflows/upstream-watch.yml` watch
+`libtcod/libtcod` daily and file triage issues here, adapted from the same
+mechanism in `shindakun/agent-sdk-go`.
+
+The adaptation that matters is the classifier. Most of libtcod's C tree is
+excluded from this port by design, so commits are bucketed by which file they
+touch before any model is involved: files with a Go counterpart get a
+Claude-triaged issue naming the affected package and assessing whether golden
+fixtures would change; files we deliberately exclude roll into a single issue
+so the decision stays visible without noise; docs, CI and tests are dropped.
+The C-file-to-Go-package map is explicit rather than pattern-matched, so a
+new upstream file surfaces as unknown instead of being silently ignored.
+
+`scripts/upstream-watch-test.sh` pins that mapping with 32 cases and needs no
+network. Commit messages and diffs reach the model only inside delimited
+untrusted blocks with the delimiters stripped from the input first.
+
+Dry-run against the last 12 real upstream commits: CI, dependabot and
+changelog noise correctly ignored, and three genuine FOV buffer-overflow
+fixes correctly flagged.
+
+### Those FOV fixes, checked
+
+`eaf2d5b`, `8210648` and `0455801` fix fixed-size buffer overflows in MRPAS
+and permissive FOV on small maps. This port is structurally immune: `insert`
+uses `append`/`copy` on a slice rather than shifting within a fixed array,
+and the bump buffer is already sized `max(len(cells), 16)`, which is the
+guard the upstream fix adds. Verified across all 13 algorithms on every map
+from 1x1 to 4x4, at four radii, with and without wall lighting: no panics.
+
+### Results after session 9
+
+- 21 packages. `go build`, `go vet`, `gofmt`, `golangci-lint`, shellcheck and
+  markdownlint all clean.
+- All prior fixtures unchanged; `pathfinder` adds 80 verified distance fields.
+- Still zero third-party dependencies.
+
+---
+
 # Deferred Register
 
 **This is the canonical list.** Deferred items were previously scattered
@@ -930,6 +1013,7 @@ One entry, flagged because "faithful port" is the project's whole premise.
 | `parser` | **Clean-room, not a line-by-line port.** Divergences measured against the C implementation in session 4 and documented in the package doc; corpus and C harness in `internal/fixtures/parser`. Summary: `#` comments are a golibtcod extension (libtcod rejects them); validation is a separate optional layer rather than schema-first parsing; all errors are reported rather than the first; a type mismatch keeps the offending text instead of substituting zero; golibtcod aborts on a malformed file where libtcod recovers. | `lex_c.c` + `parser_c.c` are ~2,600 lines built on a global lexer and a listener-callback ABI, with no numerical behaviour to preserve. A transliteration would be both unpleasant and un-Go-like. |
 | `image` | File IO uses stdlib `image/png` and `image/jpeg` instead of SDL_image. Pixel operations are line-by-line ports. | SDL is not a dependency, and the stdlib PNG decoder is better than the one being replaced. |
 | `rexpaint` | `compress/gzip` instead of zlib. Format bit-identical. | Same reason: no external dependency. |
+| `path` (`Pathfinder`) | **Implements the intended behaviour, not the shipped behaviour.** Upstream `pathfinder.c` has four defects that leave it unable to leave the origin cell: an inverted bounds test, an inverted relaxation test, a cost grid that is written but never read, and a stride stored in a shape field. All four confirmed against HEAD `c54823e`; no upstream issue covers them. The C pointer/stride/`int_type` descriptor is also replaced by Go slices. | Porting the bugs would yield a pathfinder that computes nothing. Verified instead against a C build corrected on all four counts: 250 randomized distance fields identical. See `internal/fixtures/pathfinder/README.md`. |
 
 Everything else in the tree is a faithful port validated against fixtures
 generated by the actual C code. Preserved C quirks are listed under session
